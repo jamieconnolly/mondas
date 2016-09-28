@@ -19,6 +19,15 @@ func NewApp(name string) *App {
 	}
 }
 
+func (a *App) Find(command string) string {
+	binDir, _ := filepath.Abs(filepath.Dir(os.Args[0]))
+
+	cmdName := filepath.Base(a.Name) + "-" + command
+	cmdPath := filepath.Join(binDir, "../libexec", cmdName)
+
+	return cmdPath
+}
+
 func (a *App) Run(arguments []string) {
 	log.SetFlags(0)
 
@@ -33,14 +42,12 @@ func (a *App) Run(arguments []string) {
 		log.Fatalf("Usage: %s <command> [<args>]", a.Name)
 	}
 
-	binDir, _ := filepath.Abs(filepath.Dir(os.Args[0]))
-	cmdName := filepath.Base(a.Name) + "-" + flags.Arg(0)
-	cmdPath := filepath.Join(binDir, "../libexec", cmdName)
+	cmdPath := a.Find(flags.Arg(0))
 
 	args := []string{cmdPath}
 	args = append(args, flags.Args()[1:]...)
 
 	if err := syscall.Exec(cmdPath, args, os.Environ()); err != nil {
-		log.Fatalf("%s: %v", cmdName, err)
+		log.Fatalf("%s-%s: %v", filepath.Base(a.Name), flags.Arg(0), err)
 	}
 }
