@@ -24,10 +24,7 @@ func (a *App) Find(command string) *Command {
 	cmdName := filepath.Base(a.Name) + "-" + command
 	cmdPath := filepath.Join(binDir, "../libexec", cmdName)
 
-	return &Command{
-		Name: command,
-		Path: cmdPath,
-	}
+	return NewCommand(command, cmdPath)
 }
 
 func (a *App) Run(arguments []string) {
