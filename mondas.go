@@ -4,7 +4,8 @@ import "os"
 
 func Run() {
 	app := &App{
-		Name: os.Args[0],
+		Name: Name,
+		LibexecDir: LibexecDir,
 	}
 	app.Run(os.Args[1:])
 }
