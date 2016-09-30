@@ -17,14 +17,12 @@ func (a *App) Find(command string) *Command {
 	}
 }
 
-func (a *App) Run(arguments []string) {
+func (a *App) Run(arguments []string) error {
 	if len(arguments) == 0 {
 		log.Fatalf("Usage: %s <command> [<args>]", a.Name)
 	}
 
 	cmd := a.Find(arguments[0])
 
-	if err := cmd.Run(arguments[1:]); err != nil {
-		log.Fatalf("%s: %v", a.Name, err)
-	}
+	return cmd.Run(arguments[1:])
 }
