@@ -1,11 +1,19 @@
 package mondas
 
-import "os"
+import (
+	"log"
+	"os"
+)
 
 func Run() {
 	app := &App{
 		Name: Name,
 		LibexecDir: LibexecDir,
 	}
-	app.Run(os.Args[1:])
+
+	log.SetFlags(0)
+
+	if err := app.Run(os.Args[1:]); err != nil {
+		log.Fatalf("%s: %v", Name, err)
+	}
 }
