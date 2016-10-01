@@ -1,7 +1,8 @@
 package mondas
 
 import (
-	"log"
+	"fmt"
+	"os/exec"
 	"path/filepath"
 )
 
@@ -11,18 +12,25 @@ type App struct {
 }
 
 func (a *App) Find(command string) *Command {
-	return &Command{
-		Name: command,
-		Path: filepath.Join(a.LibexecDir, filepath.Base(a.Name) + "-" + command),
+	cmd := a.Name + "-" + command
+	if path, err := exec.LookPath(filepath.Join(a.LibexecDir, cmd)); err == nil {
+		return &Command{
+			Name: command,
+			Path: path,
+		}
 	}
+
+	return nil
 }
 
 func (a *App) Run(arguments []string) error {
 	if len(arguments) == 0 {
-		log.Fatalf("Usage: %s <command> [<args>]", a.Name)
+		return fmt.Errorf("Usage: %s <command> [<args>]", a.Name)
 	}
 
-	cmd := a.Find(arguments[0])
+	if cmd := a.Find(arguments[0]); cmd != nil {
+		return cmd.Run(arguments[1:])
+	}
 
-	return cmd.Run(arguments[1:])
+	return fmt.Errorf("'%s' is not a %s command.", arguments[0], a.Name)
 }
