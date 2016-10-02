@@ -2,7 +2,6 @@ package mondas
 
 import (
 	"fmt"
-	"os/exec"
 	"path/filepath"
 )
 
@@ -12,14 +11,13 @@ type App struct {
 }
 
 func (a *App) Find(command string) *Command {
-	cmd := a.Name + "-" + command
-	if path, err := exec.LookPath(filepath.Join(a.LibexecDir, cmd)); err == nil {
+	file := filepath.Join(a.LibexecDir, a.Name + "-" + command)
+	if isExecutable(file) {
 		return &Command{
 			Name: command,
-			Path: path,
+			Path: file,
 		}
 	}
-
 	return nil
 }
 
