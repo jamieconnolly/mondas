@@ -67,7 +67,8 @@ func (a *App) ShowHelp() error {
 	if commands := a.FindAll(); len(commands) > 0 {
 		fmt.Println("\nCommands:")
 		for _, cmd := range commands {
-			fmt.Printf("   %-9s\n", cmd.Name)
+			cmd.Parse()
+			fmt.Printf("   %-15s   %s\n", cmd.Name, cmd.Summary)
 		}
 	}
 
@@ -84,8 +85,8 @@ func (a *App) ShowInvalidCommandError(typedCommand string) error {
 		} else {
 			fmt.Fprintln(buf, "\nDid you mean one of these?")
 		}
-		for _, s := range suggestions {
-			fmt.Fprintf(buf, "\t%v\n", s.Name)
+		for _, cmd := range suggestions {
+			fmt.Fprintf(buf, "\t%v\n", cmd.Name)
 		}
 	}
 
