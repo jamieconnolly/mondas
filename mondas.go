@@ -14,6 +14,6 @@ func Run() {
 	log.SetFlags(0)
 
 	if err := app.Run(os.Args[1:]); err != nil {
-		log.Fatalf("%s: %v", Name, err)
+		log.Fatal(err)
 	}
 }
