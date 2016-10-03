@@ -63,22 +63,31 @@ func (a *App) Run(arguments []string) error {
 
 func (a *App) ShowHelp() error {
 	fmt.Printf("Usage: %s <command> [<args>]\n", a.Name)
+
+	if commands := a.FindAll(); len(commands) > 0 {
+		fmt.Println("\nCommands:")
+		for _, cmd := range commands {
+			fmt.Printf("   %-9s\n", cmd.Name)
+		}
+	}
+
 	return nil
 }
 
 func (a *App) ShowInvalidCommandError(typedCommand string) error {
 	buf := new(bytes.Buffer)
 	fmt.Fprintf(buf, "%s: '%s' is not a valid command.\n", a.Name, typedCommand)
+
 	if suggestions := a.FindSuggestionsFor(typedCommand); len(suggestions) > 0 {
-		fmt.Fprintln(buf)
 		if len(suggestions) == 1 {
-			fmt.Fprintln(buf, "Did you mean this?")
+			fmt.Fprintln(buf, "\nDid you mean this?")
 		} else {
-			fmt.Fprintln(buf, "Did you mean one of these?")
+			fmt.Fprintln(buf, "\nDid you mean one of these?")
 		}
 		for _, s := range suggestions {
 			fmt.Fprintf(buf, "\t%v\n", s.Name)
 		}
 	}
+
 	return fmt.Errorf(buf.String())
 }
