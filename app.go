@@ -37,7 +37,7 @@ func (a *App) FindAll() []*Command {
 	return commands
 }
 
-func (a *App) FindSuggestionsFor(typedCommand string) []*Command {
+func (a *App) FindSuggested(typedCommand string) []*Command {
 	suggestions := []*Command{}
 	for _, cmd := range a.FindAll() {
 		suggestForDistance := stringDistance(typedCommand, cmd.Name) <= MaxSuggestionDistance
@@ -78,7 +78,7 @@ func (a *App) ShowInvalidCommandError(typedCommand string) error {
 	buf := new(bytes.Buffer)
 	fmt.Fprintf(buf, "%s: '%s' is not a valid command.\n", a.Name, typedCommand)
 
-	if suggestions := a.FindSuggestionsFor(typedCommand); len(suggestions) > 0 {
+	if suggestions := a.FindSuggested(typedCommand); len(suggestions) > 0 {
 		if len(suggestions) == 1 {
 			fmt.Fprintln(buf, "\nDid you mean this?")
 		} else {
