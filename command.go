@@ -11,8 +11,7 @@ type Command struct {
 }
 
 func (c *Command) Run(arguments []string) error {
-	args := []string{c.Path}
-	args = append(args, arguments...)
+	args := append([]string{c.Path}, arguments...)
 
 	return syscall.Exec(c.Path, args, os.Environ())
 }

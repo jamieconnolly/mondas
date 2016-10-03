@@ -23,12 +23,21 @@ func (a *App) Find(command string) *Command {
 
 func (a *App) Run(arguments []string) error {
 	if len(arguments) == 0 {
-		return fmt.Errorf("Usage: %s <command> [<args>]", a.Name)
+		return a.ShowHelp()
 	}
 
 	if cmd := a.Find(arguments[0]); cmd != nil {
 		return cmd.Run(arguments[1:])
 	}
 
-	return fmt.Errorf("'%s' is not a %s command.", arguments[0], a.Name)
+	return a.ShowInvalidCommandHelp(arguments[0])
+}
+
+func (a *App) ShowHelp() error {
+	fmt.Printf("Usage: %s <command> [<args>]\n", a.Name)
+	return nil
+}
+
+func (a *App) ShowInvalidCommandHelp(typedCommand string) error {
+	return fmt.Errorf("%s: '%s' is not a %s command.", a.Name, typedCommand, a.Name)
 }
