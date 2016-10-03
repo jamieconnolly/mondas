@@ -7,6 +7,8 @@ import (
 	"github.com/kardianos/osext"
 )
 
+const MaxSuggestionDistance = 3
+
 var (
 	BinDir, _ = osext.ExecutableFolder()
 	Name = filepath.Base(os.Args[0])
