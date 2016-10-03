@@ -2,3 +2,5 @@ package: github.com/jamieconnolly/mondas
 import:
   - package: github.com/kardianos/osext
     version: c2c54e542fb797ad986b31721e1baedf214ca413
+  - package: github.com/texttheater/golang-levenshtein
+    version: 1298e830a5c134c6830b6d472b7b81faa9492c0a

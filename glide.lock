@@ -1,6 +1,10 @@
-hash: a1778d1796abb4238a2132f56d78daf5f7fd76d477d2fe5bbd586dd0d2472cd0
-updated: 2016-09-29T11:52:10.608446685+01:00
+hash: fb9b9f4de2ee18322827ac2c144220e70691cdd4b6437eca182264de860b1c51
+updated: 2016-10-01T23:37:41.849942009+01:00
 imports:
 - name: github.com/kardianos/osext
   version: c2c54e542fb797ad986b31721e1baedf214ca413
+- name: github.com/texttheater/golang-levenshtein
+  version: 1298e830a5c134c6830b6d472b7b81faa9492c0a
+  subpackages:
+  - levenshtein
 testImports: []
