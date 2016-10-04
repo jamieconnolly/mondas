@@ -2,6 +2,7 @@ package mondas
 
 import (
 	"bufio"
+	"fmt"
 	"os"
 	"regexp"
 	"strings"
@@ -35,4 +36,10 @@ func (c *Command) Parse() error {
 func (c *Command) Run(arguments []string) error {
 	args := append([]string{c.Path}, arguments...)
 	return syscall.Exec(c.Path, args, os.Environ())
+}
+
+func (c *Command) ShowHelp() error {
+	c.Parse()
+	fmt.Printf("Name: %v - %v\n", c.Name, c.Summary)
+	return nil
 }
