@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"syscall"
@@ -13,6 +14,7 @@ type Command struct {
 	Name string
 	Path string
 	Summary string
+	Usage []string
 }
 
 func (c *Command) Parse() error {
@@ -28,6 +30,13 @@ func (c *Command) Parse() error {
 		summaryMatch := summaryRegexp.FindStringSubmatch(scanner.Text())
 		if summaryMatch != nil {
 			c.Summary = strings.TrimSpace(summaryMatch[1])
+		}
+
+		usageRegexp := regexp.MustCompile("^# Usage: (.*)$")
+		usageMatch := usageRegexp.FindStringSubmatch(scanner.Text())
+		if usageMatch != nil {
+			usageString := strings.TrimSpace(strings.TrimPrefix(usageMatch[1], filepath.Base(c.Path)))
+			c.Usage = append(c.Usage, usageString)
 		}
 	}
 	return scanner.Err()
@@ -47,6 +56,16 @@ func (c *Command) Run(arguments []string) error {
 
 func (c *Command) ShowHelp() error {
 	c.Parse()
-	fmt.Printf("Name: %v - %v\n", c.Name, c.Summary)
+
+	fmt.Println("Name:")
+	fmt.Printf("   %s - %s\n", c.Name, c.Summary)
+
+	if len(c.Usage) > 0 {
+		fmt.Println("\nUsage:")
+		for _, use := range c.Usage {
+			fmt.Printf("   %s\n", use)
+		}
+	}
+
 	return nil
 }
