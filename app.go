@@ -54,6 +54,17 @@ func (a *App) Run(arguments []string) error {
 		return a.ShowHelp()
 	}
 
+	switch(arguments[0]) {
+	case "help", "--help", "-h":
+		if len(arguments) > 1 {
+			if cmd := a.Find(arguments[1]); cmd != nil {
+				return cmd.ShowHelp()
+			}
+			return a.ShowInvalidCommandError(arguments[1])
+		}
+		return a.ShowHelp()
+	}
+
 	if cmd := a.Find(arguments[0]); cmd != nil {
 		return cmd.Run(arguments[1:])
 	}
