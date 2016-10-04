@@ -34,6 +34,13 @@ func (c *Command) Parse() error {
 }
 
 func (c *Command) Run(arguments []string) error {
+	for _, arg := range arguments {
+		switch(arg) {
+		case "--help", "-h":
+			return c.ShowHelp()
+		}
+	}
+
 	args := append([]string{c.Path}, arguments...)
 	return syscall.Exec(c.Path, args, os.Environ())
 }
