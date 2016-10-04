@@ -97,7 +97,7 @@ func (a *App) ShowInvalidCommandError(typedCommand string) error {
 			fmt.Fprintln(buf, "\nDid you mean one of these?")
 		}
 		for _, cmd := range suggestions {
-			fmt.Fprintf(buf, "\t%v\n", cmd.Name)
+			fmt.Fprintf(buf, "\t%s\n", cmd.Name)
 		}
 	}
 
