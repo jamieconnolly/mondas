@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"path/filepath"
 	"regexp"
 	"strings"
 	"syscall"
@@ -35,8 +34,7 @@ func (c *Command) Parse() error {
 		usageRegexp := regexp.MustCompile("^# Usage: (.*)$")
 		usageMatch := usageRegexp.FindStringSubmatch(scanner.Text())
 		if usageMatch != nil {
-			usageString := strings.TrimSpace(strings.TrimPrefix(usageMatch[1], filepath.Base(c.Path)))
-			c.Usage = append(c.Usage, usageString)
+			c.Usage = append(c.Usage, strings.TrimSpace(usageMatch[1]))
 		}
 	}
 	return scanner.Err()
