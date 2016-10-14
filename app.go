@@ -5,22 +5,30 @@ import (
 	"fmt"
 	"path/filepath"
 	"strings"
+
+	"github.com/kardianos/osext"
 )
 
 type App struct {
+	ExecutablePrefix string
 	LibexecDir string
+	MaxSuggestionDistance int
 	Name string
 }
 
 func NewApp(name string) *App {
+	binDir, _ := osext.ExecutableFolder()
+
 	return &App{
-		LibexecDir: LibexecDir,
+		ExecutablePrefix: name + "-",
+		LibexecDir: filepath.Join(binDir, "..", "libexec"),
+		MaxSuggestionDistance: 3,
 		Name: name,
 	}
 }
 
 func (a *App) Find(cmdName string) *Command {
-	file := filepath.Join(a.LibexecDir, a.Name + "-" + cmdName)
+	file := filepath.Join(a.LibexecDir, a.ExecutablePrefix + cmdName)
 	if isExecutable(file) {
 		return NewCommand(cmdName, file)
 	}
@@ -29,10 +37,10 @@ func (a *App) Find(cmdName string) *Command {
 
 func (a *App) FindAll() []*Command {
 	commands := []*Command{}
-	files, _ := filepath.Glob(filepath.Join(a.LibexecDir, a.Name + "-*"))
+	files, _ := filepath.Glob(filepath.Join(a.LibexecDir, a.ExecutablePrefix + "*"))
 	for _, file := range files {
 		if isExecutable(file) {
-			cmdName := strings.TrimPrefix(filepath.Base(file), a.Name + "-")
+			cmdName := strings.TrimPrefix(filepath.Base(file), a.ExecutablePrefix)
 			commands = append(commands, NewCommand(cmdName, file))
 		}
 	}
@@ -42,7 +50,7 @@ func (a *App) FindAll() []*Command {
 func (a *App) FindSuggested(typedName string) []*Command {
 	suggestions := []*Command{}
 	for _, cmd := range a.FindAll() {
-		suggestForDistance := stringDistance(typedName, cmd.Name) <= MaxSuggestionDistance
+		suggestForDistance := stringDistance(typedName, cmd.Name) <= a.MaxSuggestionDistance
 		suggestForPrefix := strings.HasPrefix(strings.ToLower(cmd.Name), strings.ToLower(typedName))
 		if suggestForDistance || suggestForPrefix {
 			suggestions = append(suggestions, cmd)
