@@ -3,17 +3,16 @@ package mondas
 import (
 	"log"
 	"os"
+	"path/filepath"
 )
 
+var CommandLine = NewApp(filepath.Base(os.Args[0]))
+
 func Run() {
-	app := &App{
-		Name: Name,
-		LibexecDir: LibexecDir,
-	}
-
 	log.SetFlags(0)
+	log.SetPrefix(CommandLine.Name + ": ")
 
-	if err := app.Run(os.Args[1:]); err != nil {
+	if err := CommandLine.Run(os.Args[1:]); err != nil {
 		log.Fatal(err)
 	}
 }

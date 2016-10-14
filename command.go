@@ -16,6 +16,13 @@ type Command struct {
 	Usage []string
 }
 
+func NewCommand(name string, path string) *Command {
+	return &Command{
+		Name: name,
+		Path: path,
+	}
+}
+
 func (c *Command) Parse() error {
 	file, err := os.Open(c.Path)
 	if err != nil {
