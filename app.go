@@ -12,13 +12,17 @@ type App struct {
 	Name string
 }
 
-func (a *App) Find(command string) *Command {
-	file := filepath.Join(a.LibexecDir, a.Name + "-" + command)
+func NewApp(name string) *App {
+	return &App{
+		LibexecDir: LibexecDir,
+		Name: name,
+	}
+}
+
+func (a *App) Find(cmdName string) *Command {
+	file := filepath.Join(a.LibexecDir, a.Name + "-" + cmdName)
 	if isExecutable(file) {
-		return &Command{
-			Name: command,
-			Path: file,
-		}
+		return NewCommand(cmdName, file)
 	}
 	return nil
 }
@@ -28,20 +32,18 @@ func (a *App) FindAll() []*Command {
 	files, _ := filepath.Glob(filepath.Join(a.LibexecDir, a.Name + "-*"))
 	for _, file := range files {
 		if isExecutable(file) {
-			commands = append(commands, &Command{
-				Name: strings.TrimPrefix(filepath.Base(file), a.Name + "-"),
-				Path: file,
-			})
+			cmdName := strings.TrimPrefix(filepath.Base(file), a.Name + "-")
+			commands = append(commands, NewCommand(cmdName, file))
 		}
 	}
 	return commands
 }
 
-func (a *App) FindSuggested(typedCommand string) []*Command {
+func (a *App) FindSuggested(typedName string) []*Command {
 	suggestions := []*Command{}
 	for _, cmd := range a.FindAll() {
-		suggestForDistance := stringDistance(typedCommand, cmd.Name) <= MaxSuggestionDistance
-		suggestForPrefix := strings.HasPrefix(strings.ToLower(cmd.Name), strings.ToLower(typedCommand))
+		suggestForDistance := stringDistance(typedName, cmd.Name) <= MaxSuggestionDistance
+		suggestForPrefix := strings.HasPrefix(strings.ToLower(cmd.Name), strings.ToLower(typedName))
 		if suggestForDistance || suggestForPrefix {
 			suggestions = append(suggestions, cmd)
 		}
@@ -86,11 +88,11 @@ func (a *App) ShowHelp() error {
 	return nil
 }
 
-func (a *App) ShowInvalidCommandError(typedCommand string) error {
+func (a *App) ShowInvalidCommandError(typedName string) error {
 	buf := new(bytes.Buffer)
-	fmt.Fprintf(buf, "%s: '%s' is not a valid command.\n", a.Name, typedCommand)
+	fmt.Fprintf(buf, "'%s' is not a valid command.\n", typedName)
 
-	if suggestions := a.FindSuggested(typedCommand); len(suggestions) > 0 {
+	if suggestions := a.FindSuggested(typedName); len(suggestions) > 0 {
 		if len(suggestions) == 1 {
 			fmt.Fprintln(buf, "\nDid you mean this?")
 		} else {
