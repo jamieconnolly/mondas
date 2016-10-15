@@ -65,6 +65,9 @@ func (a *App) Run(arguments []string) error {
 	}
 
 	switch(arguments[0]) {
+	case "--completion":
+		return a.ShowCompletions()
+
 	case "help", "--help", "-h":
 		if len(arguments) > 1 {
 			if cmd := a.Find(arguments[1]); cmd != nil {
@@ -80,6 +83,13 @@ func (a *App) Run(arguments []string) error {
 	}
 
 	return a.ShowInvalidCommandError(arguments[0])
+}
+
+func (a *App) ShowCompletions() error {
+	for _, cmd := range a.FindAll() {
+		fmt.Println(cmd.Name)
+	}
+	return nil
 }
 
 func (a *App) ShowHelp() error {
