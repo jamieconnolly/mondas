@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"sort"
 	"strings"
 	"syscall"
 )
@@ -73,4 +74,23 @@ func (c *Command) ShowHelp() error {
 	}
 
 	return nil
+}
+
+type Commands []*Command
+
+func (c Commands) Len() int {
+	return len(c)
+}
+
+func (c Commands) Less(i, j int) bool {
+	return c[i].Name < c[j].Name
+}
+
+func (c Commands) Sort() Commands {
+	sort.Sort(c)
+	return c
+}
+
+func (c Commands) Swap(i, j int) {
+	c[i], c[j] = c[j], c[i]
 }
