@@ -12,7 +12,6 @@ import (
 type App struct {
 	ExecutablePrefix string
 	LibexecDir string
-	MaxSuggestionDistance int
 	Name string
 }
 
@@ -22,7 +21,6 @@ func NewApp(name string) *App {
 	return &App{
 		ExecutablePrefix: name + "-",
 		LibexecDir: filepath.Join(binDir, "..", "libexec"),
-		MaxSuggestionDistance: 3,
 		Name: name,
 	}
 }
@@ -45,18 +43,6 @@ func (a *App) FindAll() Commands {
 		}
 	}
 	return commands
-}
-
-func (a *App) FindSuggested(typedName string) Commands {
-	suggestions := Commands{}
-	for _, cmd := range a.FindAll() {
-		suggestForDistance := stringDistance(typedName, cmd.Name) <= a.MaxSuggestionDistance
-		suggestForPrefix := strings.HasPrefix(strings.ToLower(cmd.Name), strings.ToLower(typedName))
-		if suggestForDistance || suggestForPrefix {
-			suggestions = append(suggestions, cmd)
-		}
-	}
-	return suggestions
 }
 
 func (a *App) Run(arguments []string) error {
@@ -110,7 +96,7 @@ func (a *App) ShowInvalidCommandError(typedName string) error {
 	buf := new(bytes.Buffer)
 	fmt.Fprintf(buf, "'%s' is not a valid command.\n", typedName)
 
-	if suggestions := a.FindSuggested(typedName).Sort(); len(suggestions) > 0 {
+	if suggestions := a.FindAll().SuggestionsFor(typedName); len(suggestions) > 0 {
 		if len(suggestions) == 1 {
 			fmt.Fprintln(buf, "\nDid you mean this?")
 		} else {
