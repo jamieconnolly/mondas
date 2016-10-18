@@ -25,14 +25,6 @@ func NewApp(name string) *App {
 	}
 }
 
-func (a *App) Find(cmdName string) *Command {
-	file := filepath.Join(a.LibexecDir, a.ExecutablePrefix + cmdName)
-	if isExecutable(file) {
-		return NewCommand(cmdName, file)
-	}
-	return nil
-}
-
 func (a *App) FindAll() Commands {
 	commands := Commands{}
 	files, _ := filepath.Glob(filepath.Join(a.LibexecDir, a.ExecutablePrefix + "*"))
@@ -42,7 +34,16 @@ func (a *App) FindAll() Commands {
 			commands = append(commands, NewCommand(cmdName, file))
 		}
 	}
-	return commands
+	return commands.Sort()
+}
+
+func (a *App) Lookup(cmdName string) *Command {
+	for _, c := range a.FindAll() {
+		if c.Name == cmdName {
+			return c
+		}
+	}
+	return nil
 }
 
 func (a *App) Run(arguments []string) error {
@@ -56,7 +57,7 @@ func (a *App) Run(arguments []string) error {
 
 	case "help", "--help", "-h":
 		if len(arguments) > 1 {
-			if cmd := a.Find(arguments[1]); cmd != nil {
+			if cmd := a.Lookup(arguments[1]); cmd != nil {
 				return cmd.ShowHelp()
 			}
 			return a.ShowInvalidCommandError(arguments[1])
@@ -64,7 +65,7 @@ func (a *App) Run(arguments []string) error {
 		return a.ShowHelp()
 	}
 
-	if cmd := a.Find(arguments[0]); cmd != nil {
+	if cmd := a.Lookup(arguments[0]); cmd != nil {
 		return cmd.Run(arguments[1:])
 	}
 
@@ -72,7 +73,7 @@ func (a *App) Run(arguments []string) error {
 }
 
 func (a *App) ShowCompletions() error {
-	for _, cmd := range a.FindAll().Sort() {
+	for _, cmd := range a.FindAll() {
 		fmt.Println(cmd.Name)
 	}
 	return nil
@@ -81,7 +82,7 @@ func (a *App) ShowCompletions() error {
 func (a *App) ShowHelp() error {
 	fmt.Printf("Usage: %s <command> [<args>]\n", a.Name)
 
-	if commands := a.FindAll().Sort(); len(commands) > 0 {
+	if commands := a.FindAll(); len(commands) > 0 {
 		fmt.Println("\nCommands:")
 		for _, cmd := range commands {
 			cmd.Parse()
