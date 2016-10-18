@@ -76,6 +76,8 @@ func (c *Command) ShowHelp() error {
 	return nil
 }
 
+const MaxSuggestionDistance = 3
+
 type Commands []*Command
 
 func (c Commands) Len() int {
@@ -89,6 +91,18 @@ func (c Commands) Less(i, j int) bool {
 func (c Commands) Sort() Commands {
 	sort.Sort(c)
 	return c
+}
+
+func (c Commands) SuggestionsFor(typedName string) Commands {
+	suggestions := Commands{}
+	for _, cmd := range c {
+		suggestForDistance := stringDistance(typedName, cmd.Name) <= MaxSuggestionDistance
+		suggestForPrefix := strings.HasPrefix(strings.ToLower(cmd.Name), strings.ToLower(typedName))
+		if suggestForDistance || suggestForPrefix {
+			suggestions = append(suggestions, cmd)
+		}
+	}
+	return suggestions.Sort()
 }
 
 func (c Commands) Swap(i, j int) {
