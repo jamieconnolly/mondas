@@ -10,31 +10,39 @@ import (
 )
 
 type App struct {
-	ExecutablePrefix string
-	LibexecDir string
-	Name string
+	executablePrefix string
+	libexecDir string
+	name string
 }
 
 func NewApp(name string) *App {
 	binDir, _ := osext.ExecutableFolder()
 
 	return &App{
-		ExecutablePrefix: name + "-",
-		LibexecDir: filepath.Join(binDir, "..", "libexec"),
-		Name: name,
+		executablePrefix: name + "-",
+		libexecDir: filepath.Join(binDir, "..", "libexec"),
+		name: name,
 	}
+}
+
+func (a *App) ExecutablePrefix() string {
+	return a.executablePrefix
 }
 
 func (a *App) FindAll() Commands {
 	commands := Commands{}
-	files, _ := filepath.Glob(filepath.Join(a.LibexecDir, a.ExecutablePrefix + "*"))
+	files, _ := filepath.Glob(filepath.Join(a.libexecDir, a.executablePrefix + "*"))
 	for _, file := range files {
 		if isExecutable(file) {
-			cmdName := strings.TrimPrefix(filepath.Base(file), a.ExecutablePrefix)
+			cmdName := strings.TrimPrefix(filepath.Base(file), a.executablePrefix)
 			commands = append(commands, NewCommand(cmdName, file))
 		}
 	}
 	return commands.Sort()
+}
+
+func (a *App) LibexecDir() string {
+	return a.libexecDir
 }
 
 func (a *App) Lookup(cmdName string) *Command {
@@ -44,6 +52,10 @@ func (a *App) Lookup(cmdName string) *Command {
 		}
 	}
 	return nil
+}
+
+func (a *App) Name() string {
+	return a.name
 }
 
 func (a *App) Run(arguments []string) error {
@@ -80,7 +92,7 @@ func (a *App) ShowCompletions() error {
 }
 
 func (a *App) ShowHelp() error {
-	fmt.Printf("Usage: %s <command> [<args>]\n", a.Name)
+	fmt.Printf("Usage: %s <command> [<args>]\n", a.Name())
 
 	if commands := a.FindAll(); len(commands) > 0 {
 		fmt.Println("\nCommands:")
