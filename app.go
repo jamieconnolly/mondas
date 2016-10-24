@@ -56,13 +56,8 @@ func (a *App) LibexecDir() string {
 	return a.libexecDir
 }
 
-func (a *App) Lookup(cmdName string) Command {
-	for _, c := range a.commands {
-		if c.Name() == cmdName {
-			return c
-		}
-	}
-	return nil
+func (a *App) LookupCommand(name string) Command {
+	return a.commands.Lookup(name)
 }
 
 func (a *App) Name() string {
@@ -80,7 +75,7 @@ func (a *App) Run(arguments []string) error {
 
 	case "help", "--help", "-h":
 		if len(arguments) > 1 {
-			if cmd := a.Lookup(arguments[1]); cmd != nil {
+			if cmd := a.LookupCommand(arguments[1]); cmd != nil {
 				return cmd.ShowHelp()
 			}
 			return a.ShowInvalidCommandError(arguments[1])
@@ -88,7 +83,7 @@ func (a *App) Run(arguments []string) error {
 		return a.ShowHelp()
 	}
 
-	if cmd := a.Lookup(arguments[0]); cmd != nil {
+	if cmd := a.LookupCommand(arguments[0]); cmd != nil {
 		return cmd.Run(arguments[1:])
 	}
 
