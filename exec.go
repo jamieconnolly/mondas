@@ -60,7 +60,10 @@ func (c *ExecCommand) Run(ctx *Context) error {
 	}
 
 	args := append([]string{c.path}, ctx.Args...)
-	env := os.Environ()
+	env := append(os.Environ(), fmt.Sprintf("PATH=%s", strings.Join(
+		[]string{ctx.App.LibexecDir(), os.Getenv("PATH")},
+		string(os.PathListSeparator),
+	)))
 	return syscall.Exec(c.path, args, env)
 }
 
