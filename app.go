@@ -44,7 +44,7 @@ func (a *App) Init() *App {
 	for _, file := range files {
 		if isExecutable(file) {
 			name := strings.TrimPrefix(filepath.Base(file), a.executablePrefix)
-			a.commands = append(a.commands, NewCommand(name, file))
+			a.commands = append(a.commands, NewExecCommand(name, file))
 		}
 	}
 
@@ -56,9 +56,9 @@ func (a *App) LibexecDir() string {
 	return a.libexecDir
 }
 
-func (a *App) Lookup(cmdName string) *Command {
+func (a *App) Lookup(cmdName string) Command {
 	for _, c := range a.commands {
-		if c.Name == cmdName {
+		if c.Name() == cmdName {
 			return c
 		}
 	}
@@ -97,7 +97,7 @@ func (a *App) Run(arguments []string) error {
 
 func (a *App) ShowCompletions() error {
 	for _, cmd := range a.commands {
-		fmt.Println(cmd.Name)
+		fmt.Println(cmd.Name())
 	}
 	return nil
 }
@@ -108,8 +108,8 @@ func (a *App) ShowHelp() error {
 	if commands := a.commands.Sort(); len(commands) > 0 {
 		fmt.Println("\nCommands:")
 		for _, cmd := range commands {
-			cmd.Parse()
-			fmt.Printf("   %-15s   %s\n", cmd.Name, cmd.Summary)
+			cmd.LoadHelp()
+			fmt.Printf("   %-15s   %s\n", cmd.Name(), cmd.Summary())
 		}
 	}
 
@@ -127,7 +127,7 @@ func (a *App) ShowInvalidCommandError(typedName string) error {
 			fmt.Fprintln(buf, "\nDid you mean one of these?")
 		}
 		for _, cmd := range suggestions {
-			fmt.Fprintf(buf, "\t%s\n", cmd.Name)
+			fmt.Fprintf(buf, "\t%s\n", cmd.Name())
 		}
 	}
 
