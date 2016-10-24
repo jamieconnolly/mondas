@@ -12,7 +12,7 @@ func Run() {
 	log.SetFlags(0)
 	log.SetPrefix(CommandLine.Name() + ": ")
 
-	if err := CommandLine.Run(os.Args[1:]); err != nil {
+	if err := CommandLine.Init().Run(os.Args[1:]); err != nil {
 		log.Fatal(err)
 	}
 }

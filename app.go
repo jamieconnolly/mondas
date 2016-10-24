@@ -10,7 +10,9 @@ import (
 )
 
 type App struct {
+	commands Commands
 	executablePrefix string
+	initialized bool
 	libexecDir string
 	name string
 }
@@ -25,20 +27,29 @@ func NewApp(name string) *App {
 	}
 }
 
+func (a *App) Commands() Commands {
+	return a.commands
+}
+
 func (a *App) ExecutablePrefix() string {
 	return a.executablePrefix
 }
 
-func (a *App) FindAll() Commands {
-	commands := Commands{}
+func (a *App) Init() *App {
+	if a.initialized {
+		return a
+	}
+
 	files, _ := filepath.Glob(filepath.Join(a.libexecDir, a.executablePrefix + "*"))
 	for _, file := range files {
 		if isExecutable(file) {
-			cmdName := strings.TrimPrefix(filepath.Base(file), a.executablePrefix)
-			commands = append(commands, NewCommand(cmdName, file))
+			name := strings.TrimPrefix(filepath.Base(file), a.executablePrefix)
+			a.commands = append(a.commands, NewCommand(name, file))
 		}
 	}
-	return commands.Sort()
+
+	a.initialized = true
+	return a
 }
 
 func (a *App) LibexecDir() string {
@@ -46,7 +57,7 @@ func (a *App) LibexecDir() string {
 }
 
 func (a *App) Lookup(cmdName string) *Command {
-	for _, c := range a.FindAll() {
+	for _, c := range a.commands {
 		if c.Name == cmdName {
 			return c
 		}
@@ -85,7 +96,7 @@ func (a *App) Run(arguments []string) error {
 }
 
 func (a *App) ShowCompletions() error {
-	for _, cmd := range a.FindAll() {
+	for _, cmd := range a.commands {
 		fmt.Println(cmd.Name)
 	}
 	return nil
@@ -94,7 +105,7 @@ func (a *App) ShowCompletions() error {
 func (a *App) ShowHelp() error {
 	fmt.Printf("Usage: %s <command> [<args>]\n", a.Name())
 
-	if commands := a.FindAll(); len(commands) > 0 {
+	if commands := a.commands.Sort(); len(commands) > 0 {
 		fmt.Println("\nCommands:")
 		for _, cmd := range commands {
 			cmd.Parse()
@@ -109,7 +120,7 @@ func (a *App) ShowInvalidCommandError(typedName string) error {
 	buf := new(bytes.Buffer)
 	fmt.Fprintf(buf, "'%s' is not a valid command.\n", typedName)
 
-	if suggestions := a.FindAll().SuggestionsFor(typedName); len(suggestions) > 0 {
+	if suggestions := a.commands.SuggestionsFor(typedName); len(suggestions) > 0 {
 		if len(suggestions) == 1 {
 			fmt.Fprintln(buf, "\nDid you mean this?")
 		} else {
