@@ -51,16 +51,17 @@ func (c *ExecCommand) Name() string {
 	return c.name
 }
 
-func (c *ExecCommand) Run(arguments []string) error {
-	for _, arg := range arguments {
+func (c *ExecCommand) Run(ctx *Context) error {
+	for _, arg := range ctx.Args {
 		switch(arg) {
 		case "--help", "-h":
 			return c.ShowHelp()
 		}
 	}
 
-	args := append([]string{c.path}, arguments...)
-	return syscall.Exec(c.path, args, os.Environ())
+	args := append([]string{c.path}, ctx.Args...)
+	env := os.Environ()
+	return syscall.Exec(c.path, args, env)
 }
 
 func (c *ExecCommand) ShowHelp() error {

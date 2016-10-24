@@ -12,6 +12,7 @@ import (
 type App struct {
 	commands Commands
 	executablePrefix string
+	helpCommand Command
 	initialized bool
 	libexecDir string
 	name string
@@ -22,8 +23,15 @@ func NewApp(name string) *App {
 
 	return &App{
 		executablePrefix: name + "-",
+		helpCommand: helpCommand,
 		libexecDir: filepath.Join(binDir, "..", "libexec"),
 		name: name,
+	}
+}
+
+func (a *App) AddCommand(cmd Command) {
+	if a.commands.Lookup(cmd.Name()) == nil {
+		a.commands = append(a.commands, cmd)
 	}
 }
 
@@ -33,6 +41,10 @@ func (a *App) Commands() Commands {
 
 func (a *App) ExecutablePrefix() string {
 	return a.executablePrefix
+}
+
+func (a *App) HelpCommand() Command {
+	return a.helpCommand
 }
 
 func (a *App) Init() *App {
@@ -47,6 +59,8 @@ func (a *App) Init() *App {
 			a.commands = append(a.commands, NewExecCommand(name, file))
 		}
 	}
+
+	a.AddCommand(a.helpCommand)
 
 	a.initialized = true
 	return a
@@ -65,33 +79,33 @@ func (a *App) Name() string {
 }
 
 func (a *App) Run(arguments []string) error {
-	if len(arguments) == 0 {
-		return a.ShowHelp()
+	args := Args(arguments)
+
+	if args.Len() == 0 {
+		args = append(args, a.helpCommand.Name())
 	}
 
-	switch(arguments[0]) {
+	switch(args.First()) {
 	case "--completion":
 		return a.ShowCompletions()
 
-	case "help", "--help", "-h":
-		if len(arguments) > 1 {
-			if cmd := a.LookupCommand(arguments[1]); cmd != nil {
-				return cmd.ShowHelp()
-			}
-			return a.ShowInvalidCommandError(arguments[1])
-		}
-		return a.ShowHelp()
+	case "--help", "-h":
+		args[0] = a.helpCommand.Name()
 	}
 
-	if cmd := a.LookupCommand(arguments[0]); cmd != nil {
-		return cmd.Run(arguments[1:])
+	if cmd := a.LookupCommand(args.First()); cmd != nil {
+		return cmd.Run(NewContext(a, Args(args[1:])))
 	}
 
-	return a.ShowInvalidCommandError(arguments[0])
+	return a.ShowInvalidCommandError(args.First())
 }
 
 func (a *App) SetExecutablePrefix(prefix string) {
 	a.executablePrefix = prefix
+}
+
+func (a *App) SetHelpCommand(cmd Command) {
+	a.helpCommand = cmd
 }
 
 func (a *App) SetLibexecDir(dir string) {
@@ -103,7 +117,7 @@ func (a *App) SetName(name string) {
 }
 
 func (a *App) ShowCompletions() error {
-	for _, cmd := range a.commands {
+	for _, cmd := range a.commands.Sort() {
 		fmt.Println(cmd.Name())
 	}
 	return nil
