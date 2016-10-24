@@ -8,7 +8,7 @@ import (
 type Command interface {
 	LoadHelp() error
 	Name() string
-	Run(arguments []string) error
+	Run(ctx *Context) error
 	ShowHelp() error
 	Summary() string
 	Usage() []string
