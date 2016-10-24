@@ -90,6 +90,18 @@ func (a *App) Run(arguments []string) error {
 	return a.ShowInvalidCommandError(arguments[0])
 }
 
+func (a *App) SetExecutablePrefix(prefix string) {
+	a.executablePrefix = prefix
+}
+
+func (a *App) SetLibexecDir(dir string) {
+	a.libexecDir = dir
+}
+
+func (a *App) SetName(name string) {
+	a.name = name
+}
+
 func (a *App) ShowCompletions() error {
 	for _, cmd := range a.commands {
 		fmt.Println(cmd.Name())
