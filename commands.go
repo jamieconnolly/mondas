@@ -26,6 +26,15 @@ func (c Commands) Less(i, j int) bool {
 	return c[i].Name() < c[j].Name()
 }
 
+func (c Commands) Lookup(name string) Command {
+	for _, cmd := range c {
+		if cmd.Name() == name {
+			return cmd
+		}
+	}
+	return nil
+}
+
 func (c Commands) Sort() Commands {
 	sort.Sort(c)
 	return c
