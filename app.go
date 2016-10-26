@@ -33,9 +33,7 @@ func NewApp(name string) *App {
 }
 
 func (a *App) AddCommand(cmd Command) {
-	if a.commands.Lookup(cmd.Name()) == nil {
-		a.commands = append(a.commands, cmd)
-	}
+	a.commands.Add(cmd)
 }
 
 func (a *App) Commands() Commands {
@@ -59,7 +57,7 @@ func (a *App) Init() *App {
 	for _, file := range files {
 		if isExecutable(file) {
 			name := strings.TrimPrefix(filepath.Base(file), a.executablePrefix)
-			a.AddCommand(NewExecCommand(name, file))
+			a.commands.Add(NewExecCommand(name, file))
 		}
 	}
 
@@ -106,7 +104,7 @@ func (a *App) SetExecutablePrefix(prefix string) {
 }
 
 func (a *App) SetHelpCommand(cmd Command) {
-	a.AddCommand(cmd)
+	a.commands.Add(cmd)
 	a.helpCommand = cmd
 }
 
