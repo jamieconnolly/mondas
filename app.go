@@ -21,12 +21,15 @@ type App struct {
 func NewApp(name string) *App {
 	binDir, _ := osext.ExecutableFolder()
 
-	return &App{
+	a := &App{
 		executablePrefix: name + "-",
-		helpCommand: helpCommand,
 		libexecDir: filepath.Join(binDir, "..", "libexec"),
 		name: name,
 	}
+
+	a.SetHelpCommand(helpCommand)
+
+	return a
 }
 
 func (a *App) AddCommand(cmd Command) {
@@ -56,11 +59,9 @@ func (a *App) Init() *App {
 	for _, file := range files {
 		if isExecutable(file) {
 			name := strings.TrimPrefix(filepath.Base(file), a.executablePrefix)
-			a.commands = append(a.commands, NewExecCommand(name, file))
+			a.AddCommand(NewExecCommand(name, file))
 		}
 	}
-
-	a.AddCommand(a.helpCommand)
 
 	a.initialized = true
 	return a
@@ -105,6 +106,7 @@ func (a *App) SetExecutablePrefix(prefix string) {
 }
 
 func (a *App) SetHelpCommand(cmd Command) {
+	a.AddCommand(cmd)
 	a.helpCommand = cmd
 }
 
