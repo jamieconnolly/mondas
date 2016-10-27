@@ -16,18 +16,22 @@ type App struct {
 	initialized bool
 	libexecDir string
 	name string
+	version string
+	versionCommand Command
 }
 
-func NewApp(name string) *App {
+func NewApp(name string, version string) *App {
 	binDir, _ := osext.ExecutableFolder()
 
 	a := &App{
 		executablePrefix: name + "-",
 		libexecDir: filepath.Join(binDir, "..", "libexec"),
 		name: name,
+		version: version,
 	}
 
 	a.SetHelpCommand(helpCommand)
+	a.SetVersionCommand(versionCommand)
 
 	return a
 }
@@ -90,6 +94,9 @@ func (a *App) Run(arguments []string) error {
 
 	case "--help", "-h":
 		args[0] = a.helpCommand.Name()
+
+	case "--version", "-v":
+		args[0] = a.versionCommand.Name()
 	}
 
 	if cmd := a.LookupCommand(args.First()); cmd != nil {
@@ -114,6 +121,15 @@ func (a *App) SetLibexecDir(dir string) {
 
 func (a *App) SetName(name string) {
 	a.name = name
+}
+
+func (a *App) SetVersion(version string) {
+	a.version = version
+}
+
+func (a *App) SetVersionCommand(cmd Command) {
+	a.commands.Add(cmd)
+	a.versionCommand = cmd
 }
 
 func (a *App) ShowCompletions() error {
@@ -153,4 +169,12 @@ func (a *App) ShowInvalidCommandError(typedName string) error {
 	}
 
 	return fmt.Errorf(buf.String())
+}
+
+func (a *App) Version() string {
+	return a.version
+}
+
+func (a *App) VersionCommand() Command {
+	return a.versionCommand
 }

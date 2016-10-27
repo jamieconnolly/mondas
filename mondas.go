@@ -6,10 +6,26 @@ import (
 	"path/filepath"
 )
 
-var CommandLine = NewApp(filepath.Base(os.Args[0]))
+var (
+	CommandLine = New(Name, Version)
+	Name string
+	Version string
+)
 
 func AddCommand(cmd Command) {
 	CommandLine.AddCommand(cmd)
+}
+
+func New(name string, version string) *App {
+	if name == "" {
+		name = filepath.Base(os.Args[0])
+	}
+
+	if version == "" {
+		version = "0.0.0"
+	}
+
+	return NewApp(name, version)
 }
 
 func Run() {
@@ -23,4 +39,8 @@ func Run() {
 
 func SetHelpCommand(cmd Command) {
 	CommandLine.SetHelpCommand(cmd)
+}
+
+func SetVersionCommand(cmd Command) {
+	CommandLine.SetVersionCommand(cmd)
 }
