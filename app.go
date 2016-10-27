@@ -20,20 +20,16 @@ type App struct {
 	versionCommand Command
 }
 
-func NewApp(name string, version string) *App {
+func NewApp(name string) *App {
 	binDir, _ := osext.ExecutableFolder()
 
-	a := &App{
+	return &App{
 		executablePrefix: name + "-",
+		helpCommand: helpCommand,
 		libexecDir: filepath.Join(binDir, "..", "libexec"),
 		name: name,
-		version: version,
+		versionCommand: versionCommand,
 	}
-
-	a.SetHelpCommand(helpCommand)
-	a.SetVersionCommand(versionCommand)
-
-	return a
 }
 
 func (a *App) AddCommand(cmd Command) {
@@ -63,6 +59,12 @@ func (a *App) Init() *App {
 			name := strings.TrimPrefix(filepath.Base(file), a.executablePrefix)
 			a.commands.Add(NewExecCommand(name, file))
 		}
+	}
+
+	a.AddCommand(a.helpCommand)
+
+	if a.version != "" {
+		a.AddCommand(a.versionCommand)
 	}
 
 	a.initialized = true
@@ -111,7 +113,6 @@ func (a *App) SetExecutablePrefix(prefix string) {
 }
 
 func (a *App) SetHelpCommand(cmd Command) {
-	a.commands.Add(cmd)
 	a.helpCommand = cmd
 }
 
@@ -128,7 +129,6 @@ func (a *App) SetVersion(version string) {
 }
 
 func (a *App) SetVersionCommand(cmd Command) {
-	a.commands.Add(cmd)
 	a.versionCommand = cmd
 }
 
