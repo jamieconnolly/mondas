@@ -17,12 +17,10 @@ type ExecCommand struct {
 }
 
 func NewExecCommand(name string, path string) *ExecCommand {
-	c := &ExecCommand{
+	return &ExecCommand{
 		name: name,
 		path: path,
 	}
-
-	return c
 }
 
 func (c *ExecCommand) LoadHelp() error {
