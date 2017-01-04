@@ -32,16 +32,6 @@ func TestCommands_Add(t *testing.T) {
 	assert.Equal(t, barCommand, cmds[1])
 }
 
-func TestCommands_Len(t *testing.T) {
-	cmds := Commands{fooCommand, barCommand}
-	assert.Equal(t, 2, cmds.Len())
-}
-
-func TestCommands_Less(t *testing.T) {
-	cmds := Commands{fooCommand, barCommand}
-	assert.False(t, cmds.Less(0, 1))
-}
-
 func TestCommands_Lookup(t *testing.T) {
 	cmds := Commands{fooCommand, barCommand}
 	assert.Equal(t, fooCommand, cmds.Lookup("foo"))
@@ -53,14 +43,6 @@ func TestCommands_Sort(t *testing.T) {
 	cmds := Commands{fooCommand, barCommand}
 
 	cmds.Sort()
-	assert.Equal(t, barCommand, cmds[0])
-	assert.Equal(t, fooCommand, cmds[1])
-}
-
-func TestCommands_Swap(t *testing.T) {
-	cmds := Commands{fooCommand, barCommand}
-
-	cmds.Swap(0, 1)
 	assert.Equal(t, barCommand, cmds[0])
 	assert.Equal(t, fooCommand, cmds[1])
 }

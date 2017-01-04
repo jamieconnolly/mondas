@@ -6,25 +6,23 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var execCmd = NewExecCommand("name", "/path/to/file")
+
 func TestNewExecCommand(t *testing.T) {
-	cmd := NewExecCommand("name", "/path/to/file")
-	assert.Equal(t, "name", cmd.name)
-	assert.Equal(t, "/path/to/file", cmd.path)
+	assert.Equal(t, "name", execCmd.name)
+	assert.Equal(t, "/path/to/file", execCmd.path)
 }
 
 func TestExecCommand_Name(t *testing.T) {
-	cmd := NewExecCommand("name", "/path/to/file")
-	assert.Equal(t, "name", cmd.Name())
+	assert.Equal(t, "name", execCmd.Name())
 }
 
 func TestExecCommand_Summary(t *testing.T) {
-	cmd := NewExecCommand("name", "/path/to/file")
-	cmd.summary = "summary"
-	assert.Equal(t, "summary", cmd.Summary())
+	execCmd.summary = "summary"
+	assert.Equal(t, "summary", execCmd.Summary())
 }
 
 func TestExecCommand_Usage(t *testing.T) {
-	cmd := NewExecCommand("name", "/path/to/file")
-	cmd.usage = []string{"usage"}
-	assert.Equal(t, []string{"usage"}, cmd.Usage())
+	execCmd.usage = []string{"usage"}
+	assert.Equal(t, []string{"usage"}, execCmd.Usage())
 }
