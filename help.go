@@ -3,12 +3,12 @@ package mondas
 import "fmt"
 
 type HelpCommand struct {
-	name string
+	name    string
 	summary string
 }
 
 var helpCommand = &HelpCommand{
-	name: "help",
+	name:    "help",
 	summary: "Display help information",
 }
 
@@ -25,7 +25,7 @@ func (c *HelpCommand) Run(ctx *Context) error {
 
 	if args.Len() > 0 {
 		for _, arg := range args {
-			switch(arg) {
+			switch arg {
 			case "--help", "-h":
 				return c.ShowHelp()
 			}

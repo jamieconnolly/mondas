@@ -10,10 +10,10 @@ import (
 )
 
 type ExecCommand struct {
-	name string
-	path string
+	name    string
+	path    string
 	summary string
-	usage []string
+	usage   []string
 }
 
 func NewExecCommand(name string, path string) *ExecCommand {
@@ -53,7 +53,7 @@ func (c *ExecCommand) Name() string {
 
 func (c *ExecCommand) Run(ctx *Context) error {
 	for _, arg := range ctx.Args {
-		switch(arg) {
+		switch arg {
 		case "--help", "-h":
 			return c.ShowHelp()
 		}

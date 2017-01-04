@@ -10,14 +10,14 @@ import (
 )
 
 type App struct {
-	commands Commands
+	commands         Commands
 	executablePrefix string
-	helpCommand Command
-	initialized bool
-	libexecDir string
-	name string
-	version string
-	versionCommand Command
+	helpCommand      Command
+	initialized      bool
+	libexecDir       string
+	name             string
+	version          string
+	versionCommand   Command
 }
 
 func NewApp(name string) *App {
@@ -25,10 +25,10 @@ func NewApp(name string) *App {
 
 	return &App{
 		executablePrefix: name + "-",
-		helpCommand: helpCommand,
-		libexecDir: filepath.Join(binDir, "..", "libexec"),
-		name: name,
-		versionCommand: versionCommand,
+		helpCommand:      helpCommand,
+		libexecDir:       filepath.Join(binDir, "..", "libexec"),
+		name:             name,
+		versionCommand:   versionCommand,
 	}
 }
 
@@ -53,7 +53,7 @@ func (a *App) Init() *App {
 		return a
 	}
 
-	files, _ := filepath.Glob(filepath.Join(a.libexecDir, a.executablePrefix + "*"))
+	files, _ := filepath.Glob(filepath.Join(a.libexecDir, a.executablePrefix+"*"))
 	for _, file := range files {
 		if isExecutable(file) {
 			name := strings.TrimPrefix(filepath.Base(file), a.executablePrefix)
@@ -90,7 +90,7 @@ func (a *App) Run(arguments []string) error {
 		args = append(args, a.helpCommand.Name())
 	}
 
-	switch(args.First()) {
+	switch args.First() {
 	case "--completion":
 		return a.ShowCompletions()
 
