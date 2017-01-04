@@ -60,11 +60,15 @@ func (c *ExecCommand) Run(ctx *Context) error {
 	}
 
 	args := append([]string{c.path}, ctx.Args...)
-	env := append(os.Environ(), fmt.Sprintf("PATH=%s", strings.Join(
-		[]string{ctx.App.LibexecDir(), os.Getenv("PATH")},
+
+	env := NewEnvFromEnviron(os.Environ())
+	env.Set("PATH", strings.Join(
+		[]string{ctx.App.LibexecDir(), env.Get("PATH")},
 		string(os.PathListSeparator),
-	)))
-	return syscall.Exec(c.path, args, env)
+	))
+	env.Unset("BASH_ENV")
+
+	return syscall.Exec(c.path, args, env.Environ())
 }
 
 func (c *ExecCommand) ShowHelp() error {
