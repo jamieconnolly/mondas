@@ -1,5 +1,5 @@
-hash: fb9b9f4de2ee18322827ac2c144220e70691cdd4b6437eca182264de860b1c51
-updated: 2016-10-01T23:37:41.849942009+01:00
+hash: 7cda28d4e9eca8a5a382d2ae87de497637be4ad4a1dbe797f4538358d4c21d40
+updated: 2017-01-04T13:43:44.642496553Z
 imports:
 - name: github.com/kardianos/osext
   version: c2c54e542fb797ad986b31721e1baedf214ca413
@@ -7,4 +7,6 @@ imports:
   version: 1298e830a5c134c6830b6d472b7b81faa9492c0a
   subpackages:
   - levenshtein
-testImports: []
+testImports:
+- name: github.com/stretchr/testify
+  version: 69483b4bd14f5845b5a1e55bca19e954e827f1d0

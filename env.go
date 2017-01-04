@@ -33,8 +33,5 @@ func (e Env) Set(key string, value string) {
 }
 
 func (e Env) Unset(key string) {
-	if i, ok := e[key]; ok {
-		e[i] = ""
-		delete(e, key)
-	}
+	delete(e, key)
 }
