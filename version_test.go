@@ -6,27 +6,27 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var testVersionCommand = &VersionCommand{
+var versionCmd = &VersionCommand{
 	name:    "version",
 	summary: "version summary",
 }
 
 func TestVersionCommand_LoadHelp(t *testing.T) {
-	assert.Nil(t, testVersionCommand.LoadHelp())
+	assert.Nil(t, versionCmd.LoadHelp())
 }
 
 func TestVersionCommand_Name(t *testing.T) {
-	assert.Equal(t, "version", testVersionCommand.Name())
+	assert.Equal(t, "version", versionCmd.Name())
 }
 
 func TestVersionCommand_ShowHelp(t *testing.T) {
-	assert.Nil(t, testVersionCommand.ShowHelp())
+	assert.Nil(t, versionCmd.ShowHelp())
 }
 
 func TestVersionCommand_Summary(t *testing.T) {
-	assert.Equal(t, "version summary", testVersionCommand.Summary())
+	assert.Equal(t, "version summary", versionCmd.Summary())
 }
 
 func TestVersionCommand_Usage(t *testing.T) {
-	assert.Nil(t, testVersionCommand.Usage())
+	assert.Nil(t, versionCmd.Usage())
 }

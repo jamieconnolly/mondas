@@ -6,23 +6,23 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var testHelpCommand = &HelpCommand{
+var helpCmd = &HelpCommand{
 	name:    "help",
 	summary: "help summary",
 }
 
 func TestHelpCommand_LoadHelp(t *testing.T) {
-	assert.Nil(t, testHelpCommand.LoadHelp())
+	assert.Nil(t, helpCmd.LoadHelp())
 }
 
 func TestHelpCommand_Name(t *testing.T) {
-	assert.Equal(t, "help", testHelpCommand.Name())
+	assert.Equal(t, "help", helpCmd.Name())
 }
 
 func TestHelpCommand_Summary(t *testing.T) {
-	assert.Equal(t, "help summary", testHelpCommand.Summary())
+	assert.Equal(t, "help summary", helpCmd.Summary())
 }
 
 func TestHelpCommand_Usage(t *testing.T) {
-	assert.Nil(t, testHelpCommand.Usage())
+	assert.Nil(t, helpCmd.Usage())
 }
