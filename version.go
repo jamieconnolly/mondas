@@ -3,12 +3,12 @@ package mondas
 import "fmt"
 
 type VersionCommand struct {
-	name string
+	name    string
 	summary string
 }
 
 var versionCommand = &VersionCommand{
-	name: "version",
+	name:    "version",
 	summary: "Display version information",
 }
 
