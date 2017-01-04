@@ -24,6 +24,14 @@ func (c *Commands) Add(cmd Command) {
 	}
 }
 
+func (c Commands) Len() int {
+	return len(c)
+}
+
+func (c Commands) Less(i, j int) bool {
+	return c[i].Name() < c[j].Name()
+}
+
 func (c *Commands) Lookup(name string) Command {
 	for _, cmd := range *c {
 		if cmd.Name() == name {
@@ -48,14 +56,6 @@ func (c *Commands) SuggestionsFor(typedName string) Commands {
 		}
 	}
 	return suggestions.Sort()
-}
-
-func (c Commands) Len() int {
-	return len(c)
-}
-
-func (c Commands) Less(i, j int) bool {
-	return c[i].Name() < c[j].Name()
 }
 
 func (c Commands) Swap(i, j int) {
