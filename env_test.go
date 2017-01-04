@@ -20,8 +20,8 @@ func TestEnv_Environ(t *testing.T) {
 
 	environ := env.Environ()
 	assert.Equal(t, 2, len(environ))
-	assert.Equal(t, "foo=bar", environ[0])
-	assert.Equal(t, "baz=foo", environ[1])
+	assert.Contains(t, environ, "baz=foo")
+	assert.Contains(t, environ, "foo=bar")
 }
 
 func TestEnv_Get(t *testing.T) {
