@@ -1,4 +1,4 @@
-package mondas
+package cli
 
 type Context struct {
 	App  *App

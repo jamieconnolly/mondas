@@ -1,18 +1,24 @@
-package mondas
+package commands
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/jamieconnolly/mondas/cli"
+)
 
 type VersionCommand struct {
-	name    string
+	name string
 	summary string
 }
 
-var versionCommand = &VersionCommand{
-	name:    "version",
-	summary: "Display version information",
+func NewVersionCommand() *VersionCommand {
+	return &VersionCommand{
+		name: "version",
+		summary: "Display version information",
+	}
 }
 
-func (c *VersionCommand) LoadHelp() error {
+func (c *VersionCommand) LoadMetadata() error {
 	return nil
 }
 
@@ -20,7 +26,7 @@ func (c *VersionCommand) Name() string {
 	return c.name
 }
 
-func (c *VersionCommand) Run(ctx *Context) error {
+func (c *VersionCommand) Run(ctx *cli.Context) error {
 	fmt.Printf("%s version %s\n", ctx.App.Name(), ctx.App.Version())
 	return nil
 }

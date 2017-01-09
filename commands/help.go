@@ -1,18 +1,24 @@
-package mondas
+package commands
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/jamieconnolly/mondas/cli"
+)
 
 type HelpCommand struct {
-	name    string
+	name string
 	summary string
 }
 
-var helpCommand = &HelpCommand{
-	name:    "help",
-	summary: "Display help information",
+func NewHelpCommand() *HelpCommand {
+	return &HelpCommand{
+		name: "help",
+		summary: "Display help information",
+	}
 }
 
-func (c *HelpCommand) LoadHelp() error {
+func (c *HelpCommand) LoadMetadata() error {
 	return nil
 }
 
@@ -20,7 +26,7 @@ func (c *HelpCommand) Name() string {
 	return c.name
 }
 
-func (c *HelpCommand) Run(ctx *Context) error {
+func (c *HelpCommand) Run(ctx *cli.Context) error {
 	args := ctx.Args
 
 	if args.Len() > 0 {

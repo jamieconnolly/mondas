@@ -1,12 +1,14 @@
-package mondas
+package cli
 
 import (
 	"sort"
 	"strings"
+
+	"github.com/texttheater/golang-levenshtein/levenshtein"
 )
 
 type Command interface {
-	LoadHelp() error
+	LoadMetadata() error
 	Name() string
 	Run(ctx *Context) error
 	ShowHelp() error
@@ -22,6 +24,21 @@ func (c *Commands) Add(cmd Command) {
 	if c.Lookup(cmd.Name()) == nil {
 		*c = append(*c, cmd)
 	}
+}
+
+func (c Commands) Len() int {
+	return len(c)
+}
+
+func (c Commands) Less(i, j int) bool {
+	return c[i].Name() < c[j].Name()
+}
+
+func (c *Commands) LoadMetadata() Commands {
+	for _, cmd := range *c {
+		cmd.LoadMetadata()
+	}
+	return *c
 }
 
 func (c *Commands) Lookup(name string) Command {
@@ -41,7 +58,12 @@ func (c *Commands) Sort() Commands {
 func (c *Commands) SuggestionsFor(typedName string) Commands {
 	suggestions := Commands{}
 	for _, cmd := range *c {
-		suggestForDistance := stringDistance(typedName, cmd.Name()) <= MaxSuggestionDistance
+		stringDistance := levenshtein.DistanceForStrings(
+			[]rune(typedName),
+			[]rune(cmd.Name()),
+			levenshtein.DefaultOptions,
+		)
+		suggestForDistance := stringDistance <= MaxSuggestionDistance
 		suggestForPrefix := strings.HasPrefix(strings.ToLower(cmd.Name()), strings.ToLower(typedName))
 		if suggestForDistance || suggestForPrefix {
 			suggestions = append(suggestions, cmd)
@@ -50,6 +72,6 @@ func (c *Commands) SuggestionsFor(typedName string) Commands {
 	return suggestions.Sort()
 }
 
-func (c Commands) Len() int           { return len(c) }
-func (c Commands) Less(i, j int) bool { return c[i].Name() < c[j].Name() }
-func (c Commands) Swap(i, j int)      { c[i], c[j] = c[j], c[i] }
+func (c Commands) Swap(i, j int) {
+	c[i], c[j] = c[j], c[i]
+}
