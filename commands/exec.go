@@ -1,19 +1,23 @@
-package mondas
+package commands
 
 import (
 	"bufio"
 	"fmt"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"syscall"
+
+	"github.com/jamieconnolly/mondas/cli"
+	"github.com/jamieconnolly/mondas/utils"
 )
 
 type ExecCommand struct {
-	name    string
-	path    string
+	name string
+	path string
 	summary string
-	usage   []string
+	usage []string
 }
 
 func NewExecCommand(name string, path string) *ExecCommand {
@@ -23,7 +27,7 @@ func NewExecCommand(name string, path string) *ExecCommand {
 	}
 }
 
-func (c *ExecCommand) LoadHelp() error {
+func (c *ExecCommand) LoadMetadata() error {
 	file, err := os.Open(c.path)
 	if err != nil {
 		return err
@@ -51,7 +55,11 @@ func (c *ExecCommand) Name() string {
 	return c.name
 }
 
-func (c *ExecCommand) Run(ctx *Context) error {
+func (c *ExecCommand) Path() string {
+	return c.path
+}
+
+func (c *ExecCommand) Run(ctx *cli.Context) error {
 	for _, arg := range ctx.Args {
 		switch arg {
 		case "--help", "-h":
@@ -61,9 +69,9 @@ func (c *ExecCommand) Run(ctx *Context) error {
 
 	args := append([]string{c.path}, ctx.Args...)
 
-	env := NewEnvFromEnviron(os.Environ())
+	env := utils.NewEnvFromEnviron(os.Environ())
 	env.Set("PATH", strings.Join(
-		[]string{ctx.App.LibexecDir(), env.Get("PATH")},
+		[]string{filepath.Dir(c.path), env.Get("PATH")},
 		string(os.PathListSeparator),
 	))
 	env.Unset("BASH_ENV")
@@ -72,7 +80,7 @@ func (c *ExecCommand) Run(ctx *Context) error {
 }
 
 func (c *ExecCommand) ShowHelp() error {
-	c.LoadHelp()
+	c.LoadMetadata()
 
 	fmt.Println("Name:")
 	fmt.Printf("   %s - %s\n", c.Name(), c.Summary())

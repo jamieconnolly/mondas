@@ -1,34 +1,24 @@
-package mondas
+package cli
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
-	"path/filepath"
-	"strings"
-
-	"github.com/kardianos/osext"
 )
 
 type App struct {
-	commands         Commands
-	executablePrefix string
-	helpCommand      Command
-	initialized      bool
-	libexecDir       string
-	name             string
-	version          string
-	versionCommand   Command
+	commands Commands
+	helpCommand Command
+	initialized bool
+	name string
+	version string
+	versionCommand Command
 }
 
-func NewApp(name string) *App {
-	binDir, _ := osext.ExecutableFolder()
-
+func NewApp(name string, version string) *App {
 	return &App{
-		executablePrefix: name + "-",
-		helpCommand:      helpCommand,
-		libexecDir:       filepath.Join(binDir, "..", "libexec"),
-		name:             name,
-		versionCommand:   versionCommand,
+		name: name,
+		version: version,
 	}
 }
 
@@ -36,43 +26,29 @@ func (a *App) AddCommand(cmd Command) {
 	a.commands.Add(cmd)
 }
 
-func (a *App) Commands() Commands {
-	return a.commands
-}
-
-func (a *App) ExecutablePrefix() string {
-	return a.executablePrefix
-}
-
 func (a *App) HelpCommand() Command {
 	return a.helpCommand
 }
 
-func (a *App) Init() *App {
+func (a *App) Init() error {
 	if a.initialized {
-		return a
+		return nil
 	}
 
-	files, _ := filepath.Glob(filepath.Join(a.libexecDir, a.executablePrefix+"*"))
-	for _, file := range files {
-		if isExecutable(file) {
-			name := strings.TrimPrefix(filepath.Base(file), a.executablePrefix)
-			a.commands.Add(NewExecCommand(name, file))
-		}
+	if a.helpCommand != nil {
+		a.AddCommand(a.helpCommand)
+	} else {
+		return errors.New("No help command has been set")
 	}
 
-	a.AddCommand(a.helpCommand)
-
-	if a.version != "" {
+	if a.versionCommand != nil {
 		a.AddCommand(a.versionCommand)
+	} else {
+		return errors.New("No version command has been set")
 	}
 
 	a.initialized = true
-	return a
-}
-
-func (a *App) LibexecDir() string {
-	return a.libexecDir
+	return nil
 }
 
 func (a *App) LookupCommand(name string) Command {
@@ -108,16 +84,8 @@ func (a *App) Run(arguments []string) error {
 	return a.ShowInvalidCommandError(args.First())
 }
 
-func (a *App) SetExecutablePrefix(prefix string) {
-	a.executablePrefix = prefix
-}
-
 func (a *App) SetHelpCommand(cmd Command) {
 	a.helpCommand = cmd
-}
-
-func (a *App) SetLibexecDir(dir string) {
-	a.libexecDir = dir
 }
 
 func (a *App) SetName(name string) {
@@ -144,8 +112,7 @@ func (a *App) ShowHelp() error {
 
 	if commands := a.commands.Sort(); len(commands) > 0 {
 		fmt.Println("\nCommands:")
-		for _, cmd := range commands {
-			cmd.LoadHelp()
+		for _, cmd := range commands.LoadMetadata() {
 			fmt.Printf("   %-15s   %s\n", cmd.Name(), cmd.Summary())
 		}
 	}

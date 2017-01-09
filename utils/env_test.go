@@ -1,4 +1,4 @@
-package mondas
+package utils
 
 import (
 	"testing"
@@ -7,12 +7,13 @@ import (
 )
 
 func TestNewEnvFromEnviron(t *testing.T) {
-	environ := []string{"foo=bar", "baz=foo"}
+	environ := []string{"foo=bar", "bar=baz=foo", "baz"}
 
 	env := NewEnvFromEnviron(environ)
-	assert.Equal(t, 2, len(env))
+	assert.Equal(t, 3, len(env))
 	assert.Equal(t, "bar", env["foo"])
-	assert.Equal(t, "foo", env["baz"])
+	assert.Equal(t, "baz=foo", env["bar"])
+	assert.Equal(t, "", env["baz"])
 }
 
 func TestEnv_Environ(t *testing.T) {

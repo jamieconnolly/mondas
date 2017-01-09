@@ -1,4 +1,4 @@
-package mondas
+package utils
 
 import (
 	"fmt"
@@ -10,8 +10,12 @@ type Env map[string]string
 func NewEnvFromEnviron(environ []string) Env {
 	env := make(Env)
 	for _, variable := range environ {
-		components := strings.Split(variable, "=")
-		env[components[0]] = components[1]
+		parts := strings.SplitN(variable, "=", 2)
+		if len(parts) > 1 {
+			env[parts[0]] = parts[1]
+		} else {
+			env[parts[0]] = ""
+		}
 	}
 	return env
 }
