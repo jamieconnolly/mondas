@@ -14,10 +14,10 @@ import (
 )
 
 type ExecCommand struct {
-	name string
-	path string
+	name    string
+	path    string
 	summary string
-	usage []string
+	usage   []string
 }
 
 func NewExecCommand(name string, path string) *ExecCommand {

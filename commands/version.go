@@ -7,13 +7,13 @@ import (
 )
 
 type VersionCommand struct {
-	name string
+	name    string
 	summary string
 }
 
 func NewVersionCommand() *VersionCommand {
 	return &VersionCommand{
-		name: "version",
+		name:    "version",
 		summary: "Display version information",
 	}
 }

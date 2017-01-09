@@ -7,17 +7,17 @@ import (
 )
 
 type App struct {
-	commands Commands
-	helpCommand Command
-	initialized bool
-	name string
-	version string
+	commands       Commands
+	helpCommand    Command
+	initialized    bool
+	name           string
+	version        string
 	versionCommand Command
 }
 
 func NewApp(name string, version string) *App {
 	return &App{
-		name: name,
+		name:    name,
 		version: version,
 	}
 }

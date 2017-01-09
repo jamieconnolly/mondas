@@ -7,13 +7,13 @@ import (
 )
 
 type HelpCommand struct {
-	name string
+	name    string
 	summary string
 }
 
 func NewHelpCommand() *HelpCommand {
 	return &HelpCommand{
-		name: "help",
+		name:    "help",
 		summary: "Display help information",
 	}
 }
