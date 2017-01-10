@@ -36,10 +36,6 @@ func Run() {
 	CommandLine.SetHelpCommand(commands.NewHelpCommand())
 	CommandLine.SetVersionCommand(commands.NewVersionCommand())
 
-	if err := CommandLine.Init(); err != nil {
-		log.Fatal(err)
-	}
-
 	if err := CommandLine.Run(os.Args[1:]); err != nil {
 		log.Fatal(err)
 	}

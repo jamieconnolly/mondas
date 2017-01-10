@@ -60,6 +60,10 @@ func (a *App) Name() string {
 }
 
 func (a *App) Run(arguments []string) error {
+	if err := a.Init(); err != nil {
+		return err
+	}
+
 	args := Args(arguments)
 
 	if args.Len() == 0 {
