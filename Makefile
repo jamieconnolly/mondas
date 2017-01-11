@@ -1,10 +1,10 @@
-DIRS := $(shell ls -d * | grep -v vendor)
+DIRS := $(shell ls -d */ | grep -v vendor)
 PACKAGES := $(shell glide novendor)
-SOURCES := $(wildcard *.go $(addsuffix /*.go, $(DIRS)))
+SOURCES := $(wildcard $(addsuffix *.go, $(DIRS)) *.go)
 
 all: test
 
-check: fmt vet
+check: fmt vet lint
 
 fmt:
 	@gofmt -s -l $(SOURCES) | awk '{print $$1 ": file is not formatted correctly"} END{if(NR>0) {exit 1}}' 2>&1; \
@@ -12,6 +12,9 @@ fmt:
 		echo "!!! ERROR: Gofmt found unformatted files"; \
 		exit 1; \
 	fi
+
+lint:
+	@echo $(PACKAGES) | xargs -n 1 golint
 
 test: check
 	@go test -v $(PACKAGES)
@@ -23,4 +26,4 @@ vet:
 		exit 1; \
 	fi
 
-.PHONY: all check fmt test vet
+.PHONY: all check fmt lint test vet
