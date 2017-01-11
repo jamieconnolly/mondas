@@ -1,5 +1,5 @@
-hash: c2c18d5827731069194f48629a8d94e9ad6540c020b13e1a0db578bd8529e73d
-updated: 2017-01-11T17:56:42.813481602Z
+hash: f5fe27b2287d40f4e48fac230e06859242e8e75889c3b96a0465aa253437ccdf
+updated: 2017-01-11T21:12:45.242450987Z
 imports:
 - name: github.com/kardianos/osext
   version: c2c54e542fb797ad986b31721e1baedf214ca413
@@ -12,10 +12,6 @@ testImports:
   version: 6d212800a42e8ab5c146b8ace3490ee17e5225f9
   subpackages:
   - spew
-- name: github.com/golang/lint
-  version: 206c0f020eba0f7fbcfbc467a5eb808037df2ed6
-  subpackages:
-  - golint
 - name: github.com/pmezard/go-difflib
   version: d8ed2627bdf02c080bf22230dbb337003b7aba2d
   subpackages:
