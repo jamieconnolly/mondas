@@ -1,5 +1,5 @@
-hash: 7cda28d4e9eca8a5a382d2ae87de497637be4ad4a1dbe797f4538358d4c21d40
-updated: 2017-01-04T13:43:44.642496553Z
+hash: c2c18d5827731069194f48629a8d94e9ad6540c020b13e1a0db578bd8529e73d
+updated: 2017-01-11T17:56:42.813481602Z
 imports:
 - name: github.com/kardianos/osext
   version: c2c54e542fb797ad986b31721e1baedf214ca413
@@ -8,5 +8,19 @@ imports:
   subpackages:
   - levenshtein
 testImports:
+- name: github.com/davecgh/go-spew
+  version: 6d212800a42e8ab5c146b8ace3490ee17e5225f9
+  subpackages:
+  - spew
+- name: github.com/golang/lint
+  version: 206c0f020eba0f7fbcfbc467a5eb808037df2ed6
+  subpackages:
+  - golint
+- name: github.com/pmezard/go-difflib
+  version: d8ed2627bdf02c080bf22230dbb337003b7aba2d
+  subpackages:
+  - difflib
 - name: github.com/stretchr/testify
   version: 69483b4bd14f5845b5a1e55bca19e954e827f1d0
+  subpackages:
+  - assert
