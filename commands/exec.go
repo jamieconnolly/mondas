@@ -10,7 +10,6 @@ import (
 	"syscall"
 
 	"github.com/jamieconnolly/mondas/cli"
-	"github.com/jamieconnolly/mondas/utils"
 )
 
 type ExecCommand struct {
@@ -69,7 +68,7 @@ func (c *ExecCommand) Run(ctx *cli.Context) error {
 
 	args := append([]string{c.path}, ctx.Args...)
 
-	env := utils.NewEnvFromEnviron(os.Environ())
+	env := ctx.Env
 	env.Set("PATH", strings.Join(
 		[]string{filepath.Dir(c.path), env.Get("PATH")},
 		string(os.PathListSeparator),
