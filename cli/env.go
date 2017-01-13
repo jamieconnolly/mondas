@@ -5,8 +5,11 @@ import (
 	"strings"
 )
 
+// Env represents the environment of the process.
 type Env map[string]string
 
+// NewEnvFromEnviron creates a new Env object from a list of strings
+// in the form of "key=value".
 func NewEnvFromEnviron(environ []string) Env {
 	env := make(Env)
 	for _, variable := range environ {
@@ -20,6 +23,8 @@ func NewEnvFromEnviron(environ []string) Env {
 	return env
 }
 
+// Environ returns a list of strings representing the environment,
+// in the form of "key=value".
 func (e Env) Environ() []string {
 	result := make([]string, 0, len(e))
 	for key, value := range e {
@@ -28,14 +33,18 @@ func (e Env) Environ() []string {
 	return result
 }
 
+// Get retrieves the value of the named environment variable.
 func (e Env) Get(key string) string {
 	return e[key]
 }
 
+// Set sets the value of the named environment variable.
 func (e Env) Set(key string, value string) {
 	e[key] = value
 }
 
+// Unset removes the named environment variable.
+// Unset removes the given key from the environment variables.
 func (e Env) Unset(key string) {
 	delete(e, key)
 }
