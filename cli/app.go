@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"os"
 )
 
 type App struct {
@@ -82,7 +83,7 @@ func (a *App) Run(arguments []string) error {
 	}
 
 	if cmd := a.LookupCommand(args.First()); cmd != nil {
-		return cmd.Run(NewContext(a, Args(args[1:])))
+		return cmd.Run(NewContext(a, args[1:], os.Environ()))
 	}
 
 	return a.ShowInvalidCommandError(args.First())
