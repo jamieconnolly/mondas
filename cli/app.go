@@ -5,30 +5,32 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
 )
 
 type App struct {
-	commands       Commands
-	helpCommand    Command
-	initialized    bool
-	name           string
-	version        string
-	versionCommand Command
+	Commands         Commands
+	ExecutablePrefix string
+	HelpCommand      *Command
+	LibexecDir       string
+	Name             string
+	Version          string
+	VersionCommand   *Command
+
+	initialized bool
 }
 
-func NewApp(name string, version string) *App {
+func NewApp(name string) *App {
 	return &App{
-		name:    name,
-		version: version,
+		ExecutablePrefix: name + "-",
+		Name:             name,
 	}
 }
 
-func (a *App) AddCommand(cmd Command) {
-	a.commands.Add(cmd)
-}
-
-func (a *App) HelpCommand() Command {
-	return a.helpCommand
+func (a *App) AddCommand(cmd *Command) {
+	a.Commands.Add(cmd)
 }
 
 func (a *App) Init() error {
@@ -36,14 +38,24 @@ func (a *App) Init() error {
 		return nil
 	}
 
-	if a.helpCommand != nil {
-		a.AddCommand(a.helpCommand)
+	files, _ := filepath.Glob(filepath.Join(a.LibexecDir, a.ExecutablePrefix+"*"))
+	for _, file := range files {
+		if _, err := exec.LookPath(file); err == nil {
+			a.AddCommand(&Command{
+				Name: strings.TrimPrefix(filepath.Base(file), a.ExecutablePrefix),
+				Path: file,
+			})
+		}
+	}
+
+	if a.HelpCommand != nil {
+		a.AddCommand(a.HelpCommand)
 	} else {
 		return errors.New("No help command has been set")
 	}
 
-	if a.versionCommand != nil {
-		a.AddCommand(a.versionCommand)
+	if a.VersionCommand != nil {
+		a.AddCommand(a.VersionCommand)
 	} else {
 		return errors.New("No version command has been set")
 	}
@@ -52,12 +64,8 @@ func (a *App) Init() error {
 	return nil
 }
 
-func (a *App) LookupCommand(name string) Command {
-	return a.commands.Lookup(name)
-}
-
-func (a *App) Name() string {
-	return a.name
+func (a *App) LookupCommand(name string) *Command {
+	return a.Commands.Lookup(name)
 }
 
 func (a *App) Run(arguments []string) error {
@@ -68,7 +76,7 @@ func (a *App) Run(arguments []string) error {
 	args := Args(arguments)
 
 	if args.Len() == 0 {
-		args = append(args, a.helpCommand.Name())
+		args = append(args, a.HelpCommand.Name)
 	}
 
 	switch args.First() {
@@ -76,49 +84,34 @@ func (a *App) Run(arguments []string) error {
 		return a.ShowCompletions()
 
 	case "--help", "-h":
-		args[0] = a.helpCommand.Name()
+		args[0] = a.HelpCommand.Name
 
 	case "--version", "-v":
-		args[0] = a.versionCommand.Name()
+		args[0] = a.VersionCommand.Name
 	}
 
-	if cmd := a.LookupCommand(args.First()); cmd != nil {
+	if cmd := a.LookupCommand(args.First()); cmd != nil && cmd.Runnable() {
 		return cmd.Run(NewContext(a, args[1:], os.Environ()))
 	}
 
 	return a.ShowInvalidCommandError(args.First())
 }
 
-func (a *App) SetHelpCommand(cmd Command) {
-	a.helpCommand = cmd
-}
-
-func (a *App) SetName(name string) {
-	a.name = name
-}
-
-func (a *App) SetVersion(version string) {
-	a.version = version
-}
-
-func (a *App) SetVersionCommand(cmd Command) {
-	a.versionCommand = cmd
-}
-
 func (a *App) ShowCompletions() error {
-	for _, cmd := range a.commands.Sort() {
-		fmt.Println(cmd.Name())
+	for _, cmd := range a.Commands.Sort() {
+		fmt.Println(cmd.Name)
 	}
 	return nil
 }
 
 func (a *App) ShowHelp() error {
-	fmt.Printf("Usage: %s <command> [<args>]\n", a.Name())
+	fmt.Printf("Usage: %s <command> [<args>]\n", a.Name)
 
-	if commands := a.commands.Sort(); len(commands) > 0 {
+	if len(a.Commands) > 0 {
 		fmt.Println("\nCommands:")
-		for _, cmd := range commands.LoadMetadata() {
-			fmt.Printf("   %-15s   %s\n", cmd.Name(), cmd.Summary())
+
+		for _, cmd := range a.Commands.LoadMetadata().Sort() {
+			fmt.Printf("   %-15s   %s\n", cmd.Name, cmd.Summary)
 		}
 	}
 
@@ -129,24 +122,16 @@ func (a *App) ShowInvalidCommandError(typedName string) error {
 	buf := new(bytes.Buffer)
 	fmt.Fprintf(buf, "'%s' is not a valid command.\n", typedName)
 
-	if suggestions := a.commands.SuggestionsFor(typedName); len(suggestions) > 0 {
+	if suggestions := a.Commands.SuggestionsFor(typedName); len(suggestions) > 0 {
 		if len(suggestions) == 1 {
 			fmt.Fprintln(buf, "\nDid you mean this?")
 		} else {
 			fmt.Fprintln(buf, "\nDid you mean one of these?")
 		}
-		for _, cmd := range suggestions {
-			fmt.Fprintf(buf, "\t%s\n", cmd.Name())
+		for _, cmd := range suggestions.Sort() {
+			fmt.Fprintf(buf, "\t%s\n", cmd.Name)
 		}
 	}
 
 	return fmt.Errorf(buf.String())
-}
-
-func (a *App) Version() string {
-	return a.version
-}
-
-func (a *App) VersionCommand() Command {
-	return a.versionCommand
 }

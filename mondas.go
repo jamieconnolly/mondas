@@ -5,15 +5,13 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/kardianos/osext"
-
 	"github.com/jamieconnolly/mondas/cli"
 	"github.com/jamieconnolly/mondas/commands"
-	"github.com/jamieconnolly/mondas/utils"
+	"github.com/kardianos/osext"
 )
 
 var (
-	CommandLine      = cli.NewApp(Name, Version)
+	CommandLine      = cli.NewApp(Name)
 	Executable, _    = osext.Executable()
 	ExecutablePrefix = filepath.Base(Executable) + "-"
 	LibexecDir       = filepath.Join(Executable, "../../libexec")
@@ -21,38 +19,21 @@ var (
 	Version          = ""
 )
 
-func AddCommand(cmd cli.Command) {
+func AddCommand(cmd *cli.Command) {
 	CommandLine.AddCommand(cmd)
 }
 
 func Run() {
 	log.SetFlags(0)
-	log.SetPrefix(CommandLine.Name() + ": ")
+	log.SetPrefix(CommandLine.Name + ": ")
 
-	for cmdName, cmdFile := range utils.FindAvailableCommands(ExecutablePrefix, LibexecDir) {
-		CommandLine.AddCommand(commands.NewExecCommand(cmdName, cmdFile))
-	}
-
-	CommandLine.SetHelpCommand(commands.NewHelpCommand())
-	CommandLine.SetVersionCommand(commands.NewVersionCommand())
+	CommandLine.ExecutablePrefix = ExecutablePrefix
+	CommandLine.HelpCommand = commands.HelpCommand
+	CommandLine.LibexecDir = LibexecDir
+	CommandLine.Version = Version
+	CommandLine.VersionCommand = commands.VersionCommand
 
 	if err := CommandLine.Run(os.Args[1:]); err != nil {
 		log.Fatal(err)
 	}
-}
-
-func SetHelpCommand(cmd cli.Command) {
-	CommandLine.SetHelpCommand(cmd)
-}
-
-func SetName(name string) {
-	CommandLine.SetName(name)
-}
-
-func SetVersion(version string) {
-	CommandLine.SetVersion(version)
-}
-
-func SetVersionCommand(cmd cli.Command) {
-	CommandLine.SetVersionCommand(cmd)
 }
