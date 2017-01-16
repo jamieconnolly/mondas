@@ -1,15 +1,16 @@
-package cli
+package cli_test
 
 import (
 	"testing"
 
+	"github.com/jamieconnolly/mondas/cli"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestNewEnvFromEnviron(t *testing.T) {
 	environ := []string{"foo=bar", "bar=baz=foo", "baz"}
 
-	env := NewEnvFromEnviron(environ)
+	env := cli.NewEnvFromEnviron(environ)
 	assert.Equal(t, 3, len(env))
 	assert.Equal(t, "bar", env["foo"])
 	assert.Equal(t, "baz=foo", env["bar"])
@@ -17,7 +18,7 @@ func TestNewEnvFromEnviron(t *testing.T) {
 }
 
 func TestEnv_Environ(t *testing.T) {
-	env := Env{"foo": "bar", "baz": "foo"}
+	env := cli.Env{"foo": "bar", "baz": "foo"}
 
 	environ := env.Environ()
 	assert.Equal(t, 2, len(environ))
@@ -26,14 +27,14 @@ func TestEnv_Environ(t *testing.T) {
 }
 
 func TestEnv_Get(t *testing.T) {
-	env := Env{"foo": "bar", "baz": "foo"}
+	env := cli.Env{"foo": "bar", "baz": "foo"}
 
 	assert.Equal(t, "bar", env.Get("foo"))
 	assert.Equal(t, "foo", env.Get("baz"))
 }
 
 func TestEnv_Set(t *testing.T) {
-	env := Env{"foo": "bar"}
+	env := cli.Env{"foo": "bar"}
 
 	env.Set("baz", "foo")
 	assert.Equal(t, "bar", env["foo"])
@@ -41,7 +42,7 @@ func TestEnv_Set(t *testing.T) {
 }
 
 func TestEnv_Unset(t *testing.T) {
-	env := Env{"foo": "bar", "baz": "foo"}
+	env := cli.Env{"foo": "bar", "baz": "foo"}
 
 	env.Unset("baz")
 	assert.Equal(t, "bar", env["foo"])
