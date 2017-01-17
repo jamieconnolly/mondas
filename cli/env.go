@@ -33,7 +33,7 @@ func (e Env) Environ() []string {
 	return result
 }
 
-// Get retrieves the value of the named environment variable.
+// Get returns the value of the named environment variable.
 func (e Env) Get(key string) string {
 	return e[key]
 }
@@ -44,7 +44,6 @@ func (e Env) Set(key string, value string) {
 }
 
 // Unset removes the named environment variable.
-// Unset removes the given key from the environment variables.
 func (e Env) Unset(key string) {
 	delete(e, key)
 }
