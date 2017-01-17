@@ -12,6 +12,7 @@ import (
 	"github.com/texttheater/golang-levenshtein/levenshtein"
 )
 
+// Command represents a single command within an application.
 type Command struct {
 	Action  func(*Context) error
 	Name    string
@@ -51,6 +52,8 @@ func (c *Command) LoadMetadata() error {
 	return scanner.Err()
 }
 
+// Run executes the command. It calls the Action method if present,
+// otherwise it invokes the executable located at Path.
 func (c *Command) Run(ctx *Context) error {
 	if !c.Runnable() {
 		return ctx.App.ShowInvalidCommandError(c.Name)
@@ -79,6 +82,7 @@ func (c *Command) Run(ctx *Context) error {
 	return syscall.Exec(c.Path, args, env.Environ())
 }
 
+// Runnable determines if the command can be run.
 func (c *Command) Runnable() bool {
 	return c.Action != nil || c.Path != ""
 }
@@ -97,20 +101,28 @@ func (c *Command) ShowHelp() error {
 	return nil
 }
 
+// MaxSuggestionDistance is the maximum Levenshtein distance allowed
+// between command names for it to be displayed as a suggestion.
 const MaxSuggestionDistance = 3
 
+// Commands represents a list of commands.
 type Commands []*Command
 
+// Add appends a command to the list (no-op if the command name is taken).
 func (c *Commands) Add(cmd *Command) {
 	if c.Lookup(cmd.Name) == nil {
 		*c = append(*c, cmd)
 	}
 }
 
+// Len returns the number of commands in the slice.
+// It is part of the sort.Interface implementation.
 func (c Commands) Len() int {
 	return len(c)
 }
 
+// Less reports whether the command with index i should sort before the
+// command with index j. It is part of the sort.Interface implementation.
 func (c Commands) Less(i, j int) bool {
 	return c[i].Name < c[j].Name
 }
@@ -122,6 +134,7 @@ func (c Commands) LoadMetadata() Commands {
 	return c
 }
 
+// Lookup returns the command with the matching name, or nil if not found.
 func (c *Commands) Lookup(name string) *Command {
 	for _, cmd := range *c {
 		if cmd.Name == name {
@@ -131,6 +144,13 @@ func (c *Commands) Lookup(name string) *Command {
 	return nil
 }
 
+// Sort sorts the list of commands. It returns itself for function chaining.
+func (c Commands) Sort() Commands {
+	sort.Sort(c)
+	return c
+}
+
+// SuggestionsFor returns a list of commands with similar names.
 func (c *Commands) SuggestionsFor(typedName string) Commands {
 	suggestions := Commands{}
 	for _, cmd := range *c {
@@ -148,11 +168,8 @@ func (c *Commands) SuggestionsFor(typedName string) Commands {
 	return suggestions
 }
 
-func (c Commands) Sort() Commands {
-	sort.Sort(c)
-	return c
-}
-
+// Swap swaps the commands with indexes i and j.
+// It is part of the sort.Interface implementation.
 func (c Commands) Swap(i, j int) {
 	c[i], c[j] = c[j], c[i]
 }

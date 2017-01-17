@@ -10,6 +10,7 @@ import (
 	"strings"
 )
 
+// App represents the entire command line interface.
 type App struct {
 	Commands         Commands
 	ExecutablePrefix string
@@ -22,6 +23,7 @@ type App struct {
 	initialized bool
 }
 
+// NewApp creates a new App with some reasonable defaults.
 func NewApp(name string) *App {
 	return &App{
 		ExecutablePrefix: name + "-",
@@ -29,10 +31,13 @@ func NewApp(name string) *App {
 	}
 }
 
+// AddCommand adds a command to the application.
 func (a *App) AddCommand(cmd *Command) {
 	a.Commands.Add(cmd)
 }
 
+// Init populates the list of commands with the program executables.
+// It also sets up the help and version commands.
 func (a *App) Init() error {
 	if a.initialized {
 		return nil
@@ -64,10 +69,12 @@ func (a *App) Init() error {
 	return nil
 }
 
+// LookupCommand returns a command matching the given name.
 func (a *App) LookupCommand(name string) *Command {
 	return a.Commands.Lookup(name)
 }
 
+// Run parses the given argument list and runs the matching command.
 func (a *App) Run(arguments []string) error {
 	if err := a.Init(); err != nil {
 		return err
