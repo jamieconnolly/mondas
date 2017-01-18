@@ -2,7 +2,6 @@ package cli
 
 import (
 	"bufio"
-	"fmt"
 	"os"
 	"regexp"
 	"sort"
@@ -62,7 +61,7 @@ func (c *Command) Run(ctx *Context) error {
 	for _, arg := range ctx.Args {
 		switch arg {
 		case "--help", "-h":
-			return c.ShowHelp()
+			return ctx.App.HelpCommand.Run(NewContext(ctx.App, []string{c.Name}, os.Environ()))
 		}
 	}
 
@@ -85,20 +84,6 @@ func (c *Command) Run(ctx *Context) error {
 // Runnable determines if the command can be run.
 func (c *Command) Runnable() bool {
 	return c.Action != nil || c.Path != ""
-}
-
-func (c *Command) ShowHelp() error {
-	c.LoadMetadata()
-
-	fmt.Println("Name:")
-	fmt.Printf("   %s - %s\n", c.Name, c.Summary)
-
-	if c.Usage != "" {
-		fmt.Println("\nUsage:")
-		fmt.Printf("   %s\n", c.Usage)
-	}
-
-	return nil
 }
 
 // MaxSuggestionDistance is the maximum Levenshtein distance allowed
