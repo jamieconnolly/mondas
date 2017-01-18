@@ -8,9 +8,9 @@ import (
 )
 
 func TestNewApp(t *testing.T) {
-	app := cli.NewApp("foo")
+	app := cli.NewApp("foo", "1.2.3")
 	assert.Equal(t, "foo", app.Name)
-	assert.Equal(t, "foo-", app.ExecutablePrefix)
+	assert.Equal(t, "1.2.3", app.Version)
 }
 
 func TestApp_AddCommand(t *testing.T) {
