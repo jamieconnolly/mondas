@@ -1,6 +1,6 @@
 package cli
 
-// Args represents a list of command line arguments.
+// Args represents a list of arguments.
 type Args []string
 
 // First returns the first argument (same as a.Index(0)).
