@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-// Env represents the environment of the process.
+// Env represents the environment of a process.
 type Env map[string]string
 
 // NewEnvFromEnviron creates a new Env object from a list of strings

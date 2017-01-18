@@ -1,6 +1,6 @@
 package cli
 
-// Context represents the command line execution context.
+// Context represents the context of a process.
 type Context struct {
 	App  *App
 	Args Args
