@@ -8,26 +8,39 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"github.com/kardianos/osext"
 )
 
-// App represents the entire command line interface.
+// App represents the entire command-line interface.
 type App struct {
-	Commands         Commands
+	// Commands is the list of commands.
+	Commands Commands
+	// ExecutablePrefix is the prefix for all the program executables.
 	ExecutablePrefix string
-	HelpCommand      *Command
-	LibexecDir       string
-	Name             string
-	Version          string
-	VersionCommand   *Command
+	// HelpCommand is the help command.
+	HelpCommand *Command
+	// LibexecDir is the directory where program executables are stored.
+	LibexecDir string
+	// Name is the name of the application.
+	Name string
+	// Version is the version of the application.
+	Version string
+	// VersionCommand is the version command.
+	VersionCommand *Command
 
 	initialized bool
 }
 
 // NewApp creates a new App with some reasonable defaults.
-func NewApp(name string) *App {
+func NewApp(name string, version string) *App {
+	exePath, _ := osext.Executable()
+
 	return &App{
-		ExecutablePrefix: name + "-",
+		ExecutablePrefix: filepath.Base(exePath) + "-",
+		LibexecDir:       filepath.Join(exePath, "../../libexec"),
 		Name:             name,
+		Version:          version,
 	}
 }
 
