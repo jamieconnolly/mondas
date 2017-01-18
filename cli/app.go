@@ -24,6 +24,8 @@ type App struct {
 	LibexecDir string
 	// Name is the name of the application.
 	Name string
+	// Usage is the one-line usage message.
+	Usage string
 	// Version is the version of the application.
 	Version string
 	// VersionCommand is the version command.
@@ -40,6 +42,7 @@ func NewApp(name string, version string) *App {
 		ExecutablePrefix: filepath.Base(exePath) + "-",
 		LibexecDir:       filepath.Join(exePath, "../../libexec"),
 		Name:             name,
+		Usage:            name + " <command> [<args>]",
 		Version:          version,
 	}
 }
@@ -121,20 +124,6 @@ func (a *App) ShowCompletions() error {
 	for _, cmd := range a.Commands.Sort() {
 		fmt.Println(cmd.Name)
 	}
-	return nil
-}
-
-func (a *App) ShowHelp() error {
-	fmt.Printf("Usage: %s <command> [<args>]\n", a.Name)
-
-	if len(a.Commands) > 0 {
-		fmt.Println("\nCommands:")
-
-		for _, cmd := range a.Commands.LoadMetadata().Sort() {
-			fmt.Printf("   %-15s   %s\n", cmd.Name, cmd.Summary)
-		}
-	}
-
 	return nil
 }
 
