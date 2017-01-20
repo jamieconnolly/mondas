@@ -7,6 +7,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestArgs_Contains(t *testing.T) {
+	args := cli.Args{"foo", "bar"}
+	assert.True(t, args.Contains("foo"))
+	assert.False(t, args.Contains("baz"))
+}
+
 func TestArgs_First(t *testing.T) {
 	args := cli.Args{"foo", "bar", "baz"}
 	assert.Equal(t, "foo", args.First())

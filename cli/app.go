@@ -8,42 +8,34 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
-
-	"github.com/kardianos/osext"
 )
 
 // App represents the entire command-line interface.
 type App struct {
-	// Commands is the list of commands.
+	// Commands is the list of commands
 	Commands Commands
-	// ExecutablePrefix is the prefix for all the program executables.
-	ExecutablePrefix string
+	// ExecPath is the directory where program executables are stored
+	ExecPath string
+	// ExecPrefix is the prefix for program executables
+	ExecPrefix string
 	// HelpCommand is the help command.
 	HelpCommand *Command
-	// LibexecDir is the directory where program executables are stored.
-	LibexecDir string
-	// Name is the name of the application.
+	// Name is the name of the application
 	Name string
-	// Usage is the one-line usage message.
+	// Usage is the one-line usage message
 	Usage string
-	// Version is the version of the application.
+	// Version is the version of the application
 	Version string
-	// VersionCommand is the version command.
-	VersionCommand *Command
 
 	initialized bool
 }
 
 // NewApp creates a new App with some reasonable defaults.
-func NewApp(name string, version string) *App {
-	exePath, _ := osext.Executable()
-
+func NewApp(name string) *App {
 	return &App{
-		ExecutablePrefix: filepath.Base(exePath) + "-",
-		LibexecDir:       filepath.Join(exePath, "../../libexec"),
-		Name:             name,
-		Usage:            name + " <command> [<args>]",
-		Version:          version,
+		ExecPrefix: name + "-",
+		Name:       name,
+		Usage:      "<command> [<args>]",
 	}
 }
 
@@ -52,20 +44,31 @@ func (a *App) AddCommand(cmd *Command) {
 	a.Commands.Add(cmd)
 }
 
-// Init populates the list of commands with the program executables.
-// It also sets up the help and version commands.
+// Init prepends the exec path to PATH then populates the list
+// of commands with program executables and the help command.
 func (a *App) Init() error {
 	if a.initialized {
 		return nil
 	}
 
-	files, _ := filepath.Glob(filepath.Join(a.LibexecDir, a.ExecutablePrefix+"*"))
-	for _, file := range files {
-		if _, err := exec.LookPath(file); err == nil {
-			a.AddCommand(&Command{
-				Name: strings.TrimPrefix(filepath.Base(file), a.ExecutablePrefix),
-				Path: file,
-			})
+	if a.ExecPath != "" {
+		os.Setenv("PATH", strings.Join(
+			[]string{a.ExecPath, os.Getenv("PATH")},
+			string(os.PathListSeparator),
+		))
+	}
+
+	for _, dir := range filepath.SplitList(os.Getenv("PATH")) {
+		if dir == "" {
+			dir = "."
+		}
+		files, _ := filepath.Glob(filepath.Join(dir, a.ExecPrefix+"*"))
+		for _, file := range files {
+			if _, err := exec.LookPath(file); err == nil {
+				a.AddCommand(&Command{
+					Name: strings.TrimPrefix(filepath.Base(file), a.ExecPrefix),
+				})
+			}
 		}
 	}
 
@@ -73,12 +76,6 @@ func (a *App) Init() error {
 		a.AddCommand(a.HelpCommand)
 	} else {
 		return errors.New("No help command has been set")
-	}
-
-	if a.VersionCommand != nil {
-		a.AddCommand(a.VersionCommand)
-	} else {
-		return errors.New("No version command has been set")
 	}
 
 	a.initialized = true
@@ -102,32 +99,22 @@ func (a *App) Run(arguments []string) error {
 		args = append(args, a.HelpCommand.Name)
 	}
 
-	switch args.First() {
-	case "--completion":
-		return a.ShowCompletions()
+	args[0] = strings.TrimPrefix(args.First(), "--")
 
-	case "--help", "-h":
-		args[0] = a.HelpCommand.Name
-
-	case "--version", "-v":
-		args[0] = a.VersionCommand.Name
+	if args.Contains("--help") {
+		args = Args([]string{a.HelpCommand.Name, args.First()})
 	}
 
-	if cmd := a.LookupCommand(args.First()); cmd != nil && cmd.Runnable() {
+	if cmd := a.LookupCommand(args.First()); cmd != nil {
 		return cmd.Run(NewContext(a, args[1:], os.Environ()))
 	}
 
-	return a.ShowInvalidCommandError(args.First())
+	return a.ShowUnknownCommandError(args.First())
 }
 
-func (a *App) ShowCompletions() error {
-	for _, cmd := range a.Commands.Sort() {
-		fmt.Println(cmd.Name)
-	}
-	return nil
-}
-
-func (a *App) ShowInvalidCommandError(typedName string) error {
+// ShowUnknownCommandError shows a list of suggested commands
+// based on the given name then exits with status code 1.
+func (a *App) ShowUnknownCommandError(typedName string) error {
 	buf := new(bytes.Buffer)
 	fmt.Fprintf(buf, "'%s' is not a valid command.\n", typedName)
 

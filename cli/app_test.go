@@ -8,9 +8,10 @@ import (
 )
 
 func TestNewApp(t *testing.T) {
-	app := cli.NewApp("foo", "1.2.3")
+	app := cli.NewApp("foo")
+	assert.Equal(t, "foo-", app.ExecPrefix)
 	assert.Equal(t, "foo", app.Name)
-	assert.Equal(t, "1.2.3", app.Version)
+	assert.Equal(t, "<command> [<args>]", app.Usage)
 }
 
 func TestApp_AddCommand(t *testing.T) {
@@ -21,8 +22,8 @@ func TestApp_AddCommand(t *testing.T) {
 
 	app.AddCommand(cmd2)
 	assert.Equal(t, 2, len(app.Commands))
-	assert.Equal(t, cmd1, app.Commands[0])
-	assert.Equal(t, cmd2, app.Commands[1])
+	assert.Equal(t, cmd1.Name, app.Commands[0].Name)
+	assert.Equal(t, cmd2.Name, app.Commands[1].Name)
 }
 
 func TestApp_LookupCommand(t *testing.T) {
@@ -31,7 +32,7 @@ func TestApp_LookupCommand(t *testing.T) {
 	cmds := cli.Commands{cmd1, cmd2}
 
 	app := &cli.App{Commands: cmds}
-	assert.Equal(t, cmd1, app.LookupCommand("one"))
-	assert.Equal(t, cmd2, app.LookupCommand("two"))
+	assert.Equal(t, cmd1.Name, app.LookupCommand("one").Name)
+	assert.Equal(t, cmd2.Name, app.LookupCommand("two").Name)
 	assert.Nil(t, app.LookupCommand("three"))
 }

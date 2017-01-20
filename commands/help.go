@@ -7,50 +7,48 @@ import (
 )
 
 // ShowAppHelp displays the help information for the given app.
-func ShowAppHelp(a *cli.App) error {
-	fmt.Printf("Usage: %s\n", a.Usage)
+func ShowAppHelp(ctx *cli.Context) error {
+	fmt.Printf("Usage: %s %s\n", ctx.App.Name, ctx.App.Usage)
 
-	if len(a.Commands) > 0 {
+	if len(ctx.App.Commands) > 0 {
 		fmt.Println("\nCommands:")
 
-		for _, cmd := range a.Commands.LoadMetadata().Sort() {
+		for _, cmd := range ctx.App.Commands.LoadMetadata(ctx).Sort() {
 			fmt.Printf("   %-15s   %s\n", cmd.Name, cmd.Summary)
 		}
 	}
-
 	return nil
 }
 
 // ShowCommandHelp displays the help information for the given command.
-func ShowCommandHelp(c *cli.Command) error {
-	c.LoadMetadata()
+func ShowCommandHelp(ctx *cli.Context, c *cli.Command) error {
+	c.LoadMetadata(ctx)
 
 	fmt.Println("Name:")
 	fmt.Printf("   %s - %s\n", c.Name, c.Summary)
 
-	if c.Usage != "" {
-		fmt.Println("\nUsage:")
-		fmt.Printf("   %s\n", c.Usage)
-	}
+	fmt.Println("\nUsage:")
+	fmt.Printf("   %s %s %s\n", ctx.App.Name, c.Name, c.Usage)
 
 	return nil
 }
 
-// HelpCommand is the default help command.
+// HelpCommand displays the help information.
 var HelpCommand = &cli.Command{
 	Name:    "help",
 	Summary: "Display help information",
+	Usage:   "<command>",
 	Action: func(ctx *cli.Context) error {
 		args := ctx.Args
 
-		if args.Len() > 0 {
-			if cmd := ctx.App.LookupCommand(args.First()); cmd != nil && cmd.Runnable() {
-				return ShowCommandHelp(cmd)
-			}
-
-			return ctx.App.ShowInvalidCommandError(args.First())
+		if args.Len() == 0 {
+			return ShowAppHelp(ctx)
 		}
 
-		return ShowAppHelp(ctx.App)
+		if cmd := ctx.App.LookupCommand(args.First()); cmd != nil {
+			return ShowCommandHelp(ctx, cmd)
+		}
+
+		return ctx.App.ShowUnknownCommandError(args.First())
 	},
 }
