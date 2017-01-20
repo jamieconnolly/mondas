@@ -14,7 +14,11 @@ fmt:
 	fi
 
 lint:
-	@echo $(PACKAGES) | xargs -n 1 golint
+	@echo $(PACKAGES) | xargs -n 1 golint | awk '{print} END{if(NR>0) {exit 1}}' 2>&1; \
+	if [ $$? -eq 1 ]; then \
+	  echo "!!! ERROR: Golint found stylistic issues"; \
+	  exit 1; \
+	fi
 
 test: check
 	@go test -v $(PACKAGES)
