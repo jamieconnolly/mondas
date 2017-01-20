@@ -2,7 +2,10 @@ package cli
 
 import (
 	"bufio"
+	"fmt"
 	"os"
+	"os/exec"
+	"path/filepath"
 	"regexp"
 	"sort"
 	"strings"
@@ -11,26 +14,31 @@ import (
 	"github.com/texttheater/golang-levenshtein/levenshtein"
 )
 
-// Command represents a single command within an application.
-type Command struct {
-	Action  func(*Context) error
-	Name    string
-	Path    string
-	Summary string
-	Usage   string
-}
-
 var (
 	summaryRegexp = regexp.MustCompile("^# Summary: (.*)$")
 	usageRegexp   = regexp.MustCompile("^# Usage: (.*)$")
 )
 
-func (c *Command) LoadMetadata() error {
-	if c.Path == "" {
-		return nil
+// Command represents a single command within an application.
+type Command struct {
+	// Action is the function called when the command is run
+	Action func(*Context) error
+	// Name is the name of the command
+	Name string
+	// Summary is the overview of the command
+	Summary string
+	// Usage is the one-line usage message
+	Usage string
+}
+
+// LoadMetadata attempts to read the metadata from the program executable.
+func (c *Command) LoadMetadata(ctx *Context) error {
+	binary, err := exec.LookPath(ctx.App.ExecPrefix + c.Name)
+	if err != nil {
+		return err
 	}
 
-	file, err := os.Open(c.Path)
+	file, err := os.Open(binary)
 	if err != nil {
 		return err
 	}
@@ -45,48 +53,32 @@ func (c *Command) LoadMetadata() error {
 
 		usageMatch := usageRegexp.FindStringSubmatch(scanner.Text())
 		if usageMatch != nil {
-			c.Usage = strings.TrimSpace(usageMatch[1])
+			c.Usage = strings.TrimSpace(strings.TrimPrefix(usageMatch[1], filepath.Base(binary)))
 		}
 	}
 	return scanner.Err()
 }
 
-// Run executes the command. It calls the Action method if present,
-// otherwise it invokes the executable located at Path.
+// Run executes the command.
 func (c *Command) Run(ctx *Context) error {
-	if !c.Runnable() {
-		return ctx.App.ShowInvalidCommandError(c.Name)
-	}
-
-	for _, arg := range ctx.Args {
-		switch arg {
-		case "--help", "-h":
-			return ctx.App.HelpCommand.Run(NewContext(ctx.App, []string{c.Name}, os.Environ()))
-		}
-	}
-
 	if c.Action != nil {
 		return c.Action(ctx)
 	}
 
-	args := append([]string{c.Path}, ctx.Args...)
+	binary, err := exec.LookPath(ctx.App.ExecPrefix + c.Name)
+	if err != nil {
+		return fmt.Errorf("'%s' appears to be a valid command, but we were not\n"+
+			"able to execute it. Maybe %s is broken?", c.Name, ctx.App.ExecPrefix+c.Name)
+	}
 
+	args := append([]string{binary}, ctx.Args...)
 	env := ctx.Env
-	env.Set("PATH", strings.Join(
-		[]string{ctx.App.LibexecDir, env.Get("PATH")},
-		string(os.PathListSeparator),
-	))
 	env.Unset("BASH_ENV")
 
-	return syscall.Exec(c.Path, args, env.Environ())
+	return syscall.Exec(binary, args, env.Environ())
 }
 
-// Runnable determines if the command can be run.
-func (c *Command) Runnable() bool {
-	return c.Action != nil || c.Path != ""
-}
-
-// MaxSuggestionDistance is the maximum Levenshtein distance allowed
+// MaxSuggestionDistance is the maximum levenshtein distance allowed
 // between command names for it to be displayed as a suggestion.
 const MaxSuggestionDistance = 3
 
@@ -112,9 +104,11 @@ func (c Commands) Less(i, j int) bool {
 	return c[i].Name < c[j].Name
 }
 
-func (c Commands) LoadMetadata() Commands {
+// LoadMetadata loads the metadata for all commands.
+// It returns itself for function chaining.
+func (c Commands) LoadMetadata(ctx *Context) Commands {
 	for _, cmd := range c {
-		cmd.LoadMetadata()
+		cmd.LoadMetadata(ctx)
 	}
 	return c
 }

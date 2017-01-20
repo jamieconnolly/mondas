@@ -7,20 +7,14 @@ import (
 
 	"github.com/jamieconnolly/mondas/cli"
 	"github.com/jamieconnolly/mondas/commands"
+	"github.com/kardianos/osext"
 )
 
-var (
-	// CommandLine is the default application.
-	CommandLine = cli.NewApp(Name, Version)
-	// HelpCommand is the default help command.
-	HelpCommand = commands.HelpCommand
-	// Name is the default name of the application.
-	Name = filepath.Base(os.Args[0])
-	// Version is the default version of the application.
-	Version = ""
-	// VersionCommand is the default version command.
-	VersionCommand = commands.VersionCommand
-)
+// CommandLine is the default application.
+var CommandLine = cli.NewApp(filepath.Base(os.Args[0]))
+
+// Version is the default version of the application.
+var Version string
 
 // AddCommand adds a command to the default application.
 func AddCommand(cmd *cli.Command) {
@@ -32,8 +26,18 @@ func Run() {
 	log.SetFlags(0)
 	log.SetPrefix(CommandLine.Name + ": ")
 
-	CommandLine.HelpCommand = HelpCommand
-	CommandLine.VersionCommand = VersionCommand
+	if exePath, err := osext.Executable(); err == nil {
+		CommandLine.ExecPath = filepath.Join(exePath, "../../libexec")
+	}
+
+	CommandLine.HelpCommand = commands.HelpCommand
+	CommandLine.Version = Version
+
+	CommandLine.AddCommand(commands.CompletionsCommand)
+
+	if Version != "" {
+		CommandLine.AddCommand(commands.VersionCommand)
+	}
 
 	if err := CommandLine.Run(os.Args[1:]); err != nil {
 		log.Fatal(err)
