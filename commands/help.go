@@ -26,7 +26,9 @@ func ShowAppHelp(a *cli.App) error {
 
 // ShowCommandHelp displays the help information for the given command.
 func ShowCommandHelp(c *cli.Command) error {
-	c.Parse()
+	if !c.Parsed() {
+		c.Parse()
+	}
 
 	fmt.Println("Name:")
 	fmt.Printf("   %s - %s\n", c.Name, c.Summary)
