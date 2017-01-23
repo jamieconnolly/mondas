@@ -1,6 +1,7 @@
 package: github.com/jamieconnolly/mondas
 import:
   - package: github.com/kardianos/osext
+  - package: github.com/renstrom/dedent
   - package: github.com/texttheater/golang-levenshtein
 testImport:
   - package: github.com/stretchr/testify

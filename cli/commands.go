@@ -6,17 +6,14 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"regexp"
+	"reflect"
 	"sort"
 	"strings"
 	"syscall"
 
+	"github.com/jamieconnolly/mondas/utils"
+	"github.com/renstrom/dedent"
 	"github.com/texttheater/golang-levenshtein/levenshtein"
-)
-
-var (
-	summaryRegexp = regexp.MustCompile("^# Summary: (.*)$")
-	usageRegexp   = regexp.MustCompile("^# Usage: (.*)$")
 )
 
 // Command represents a single command within an application.
@@ -25,37 +22,43 @@ type Command struct {
 	Action func(*Context) error
 	// Name is the name of the command
 	Name string
+	// Path is the path to the program executable
+	Path string
 	// Summary is the overview of the command
 	Summary string
 	// Usage is the one-line usage message
 	Usage string
 }
 
-// LoadMetadata attempts to read the metadata from the program executable.
-func (c *Command) LoadMetadata(ctx *Context) error {
-	binary, err := exec.LookPath(ctx.App.ExecPrefix + c.Name)
-	if err != nil {
+// Parse parses the contents of the program executable for metadata.
+func (c *Command) Parse() error {
+	if _, err := exec.LookPath(c.Path); err != nil {
 		return err
 	}
 
-	file, err := os.Open(binary)
+	file, err := os.Open(c.Path)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
+	scanner.Split(utils.ScanMetadata)
 	for scanner.Scan() {
-		summaryMatch := summaryRegexp.FindStringSubmatch(scanner.Text())
-		if summaryMatch != nil {
-			c.Summary = strings.TrimSpace(summaryMatch[1])
-		}
+		parts := strings.SplitN(scanner.Text(), ":", 2)
+		key, val := parts[0], strings.TrimLeft(dedent.Dedent(parts[1]), "\r\n")
 
-		usageMatch := usageRegexp.FindStringSubmatch(scanner.Text())
-		if usageMatch != nil {
-			c.Usage = strings.TrimSpace(strings.TrimPrefix(usageMatch[1], filepath.Base(binary)))
+		field := reflect.ValueOf(c).Elem().FieldByName(key)
+		if field.IsValid() && field.CanSet() {
+			switch field.Kind() {
+			case reflect.Slice:
+				field.Set(reflect.ValueOf(strings.Split(val, "\n")))
+			default:
+				field.Set(reflect.ValueOf(val))
+			}
 		}
 	}
+
 	return scanner.Err()
 }
 
@@ -65,17 +68,16 @@ func (c *Command) Run(ctx *Context) error {
 		return c.Action(ctx)
 	}
 
-	binary, err := exec.LookPath(ctx.App.ExecPrefix + c.Name)
-	if err != nil {
+	if _, err := exec.LookPath(c.Path); err != nil {
 		return fmt.Errorf("'%s' appears to be a valid command, but we were not\n"+
-			"able to execute it. Maybe %s is broken?", c.Name, ctx.App.ExecPrefix+c.Name)
+			"able to execute it. Maybe %s is broken?", c.Name, filepath.Base(c.Path))
 	}
 
-	args := append([]string{binary}, ctx.Args...)
+	args := append([]string{c.Path}, ctx.Args...)
 	env := ctx.Env
 	env.Unset("BASH_ENV")
 
-	return syscall.Exec(binary, args, env.Environ())
+	return syscall.Exec(c.Path, args, env.Environ())
 }
 
 // MaxSuggestionDistance is the maximum levenshtein distance allowed
@@ -104,15 +106,6 @@ func (c Commands) Less(i, j int) bool {
 	return c[i].Name < c[j].Name
 }
 
-// LoadMetadata loads the metadata for all commands.
-// It returns itself for function chaining.
-func (c Commands) LoadMetadata(ctx *Context) Commands {
-	for _, cmd := range c {
-		cmd.LoadMetadata(ctx)
-	}
-	return c
-}
-
 // Lookup returns the command with the matching name, or nil if not found.
 func (c *Commands) Lookup(name string) *Command {
 	for _, cmd := range *c {
@@ -121,6 +114,14 @@ func (c *Commands) Lookup(name string) *Command {
 		}
 	}
 	return nil
+}
+
+// Parse parses all the commands. It returns itself for function chaining.
+func (c Commands) Parse() Commands {
+	for _, cmd := range c {
+		cmd.Parse()
+	}
+	return c
 }
 
 // Sort sorts the list of commands. It returns itself for function chaining.
