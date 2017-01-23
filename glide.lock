@@ -1,8 +1,10 @@
-hash: 2955d32db096e5b0130d6459bfbf6627a51e93f0d0b6afd7f40e494e526f9772
-updated: 2017-01-23T12:03:22.780992354Z
+hash: 88c3fbf1b965121fea8305abc4ff1c54b0813fd9348df924bb35a184a6bfb528
+updated: 2017-01-23T14:39:12.120681718Z
 imports:
 - name: github.com/kardianos/osext
   version: c2c54e542fb797ad986b31721e1baedf214ca413
+- name: github.com/kr/text
+  version: 7cafcd837844e784b526369c9bce262804aebc60
 - name: github.com/renstrom/dedent
   version: 020d11c3b9c0c7a3c2efcc8e5cf5b9ef7bcea21f
 - name: github.com/texttheater/golang-levenshtein

@@ -8,6 +8,7 @@ import (
 
 // VersionCommand displays the version information.
 var VersionCommand = &cli.Command{
+	Hidden:  true,
 	Name:    "version",
 	Summary: "Display version information",
 	Action: func(ctx *cli.Context) error {

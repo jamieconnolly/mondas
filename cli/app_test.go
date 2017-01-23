@@ -26,6 +26,14 @@ func TestApp_AddCommand(t *testing.T) {
 	assert.Equal(t, cmd2.Name, app.Commands[1].Name)
 }
 
+func TestApp_Initialized(t *testing.T) {
+	app := &cli.App{}
+	assert.False(t, app.Initialized())
+
+	app.Initialize()
+	assert.True(t, app.Initialized())
+}
+
 func TestApp_LookupCommand(t *testing.T) {
 	cmd1 := &cli.Command{Name: "one"}
 	cmd2 := &cli.Command{Name: "two"}

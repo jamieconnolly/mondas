@@ -4,19 +4,23 @@ import (
 	"fmt"
 
 	"github.com/jamieconnolly/mondas/cli"
+	"github.com/kr/text"
 )
 
 // ShowAppHelp displays the help information for the given app.
 func ShowAppHelp(a *cli.App) error {
 	fmt.Printf("Usage: %s\n", a.Usage)
 
-	if len(a.Commands) > 0 {
+	if cmds := a.Commands.Visible(); len(cmds) > 0 {
 		fmt.Println("\nCommands:")
-
-		for _, c := range a.Commands.Parse().Sort() {
+		for _, c := range cmds {
+			if !c.Parsed() {
+				c.Parse()
+			}
 			fmt.Printf("   %-15s   %s\n", c.Name, c.Summary)
 		}
 	}
+
 	return nil
 }
 
@@ -27,8 +31,15 @@ func ShowCommandHelp(c *cli.Command) error {
 	fmt.Println("Name:")
 	fmt.Printf("   %s - %s\n", c.Name, c.Summary)
 
-	fmt.Println("\nUsage:")
-	fmt.Printf("   %s\n", c.Usage)
+	if c.Usage != "" {
+		fmt.Println("\nUsage:")
+		fmt.Printf("%s\n", text.Indent(c.Usage, "   "))
+	}
+
+	if c.Description != "" {
+		fmt.Println("\nDescription:")
+		fmt.Printf("%s\n", text.Indent(c.Description, "   "))
+	}
 
 	return nil
 }

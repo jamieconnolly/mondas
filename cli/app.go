@@ -44,12 +44,10 @@ func (a *App) AddCommand(cmd *Command) {
 	a.Commands.Add(cmd)
 }
 
-// Init prepends the exec path to PATH then populates the list
+// Initialize prepends the exec path to PATH then populates the list
 // of commands with program executables and the help command.
-func (a *App) Init() error {
-	if a.initialized {
-		return nil
-	}
+func (a *App) Initialize() error {
+	a.initialized = true
 
 	if a.ExecPath != "" {
 		os.Setenv("PATH", strings.Join(
@@ -58,9 +56,15 @@ func (a *App) Init() error {
 		))
 	}
 
+	if a.HelpCommand != nil {
+		a.AddCommand(a.HelpCommand)
+	} else {
+		return errors.New("No help command has been set")
+	}
+
 	for _, dir := range filepath.SplitList(os.Getenv("PATH")) {
 		if dir == "" {
-			dir = "."
+			continue
 		}
 		files, _ := filepath.Glob(filepath.Join(dir, a.ExecPrefix+"*"))
 		for _, file := range files {
@@ -73,14 +77,12 @@ func (a *App) Init() error {
 		}
 	}
 
-	if a.HelpCommand != nil {
-		a.AddCommand(a.HelpCommand)
-	} else {
-		return errors.New("No help command has been set")
-	}
-
-	a.initialized = true
 	return nil
+}
+
+// Initialized returns true if the application has been initialized.
+func (a *App) Initialized() bool {
+	return a.initialized
 }
 
 // LookupCommand returns a command matching the given name.
@@ -90,8 +92,10 @@ func (a *App) LookupCommand(name string) *Command {
 
 // Run parses the given argument list and runs the matching command.
 func (a *App) Run(arguments []string) error {
-	if err := a.Init(); err != nil {
-		return err
+	if !a.Initialized() {
+		if err := a.Initialize(); err != nil {
+			return err
+		}
 	}
 
 	args := Args(arguments)
@@ -125,7 +129,7 @@ func (a *App) ShowUnknownCommandError(typedName string) error {
 		} else {
 			fmt.Fprintln(buf, "\nDid you mean one of these?")
 		}
-		for _, cmd := range suggestions.Sort() {
+		for _, cmd := range suggestions {
 			fmt.Fprintf(buf, "\t%s\n", cmd.Name)
 		}
 	}
