@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"sort"
+	"strconv"
 	"strings"
 	"syscall"
 
@@ -20,6 +21,10 @@ import (
 type Command struct {
 	// Action is the function called when the command is run
 	Action func(*Context) error
+	// Description is the description of the command
+	Description string
+	// Hidden determines if the command is hidden from the help list of commands
+	Hidden bool
 	// Name is the name of the command
 	Name string
 	// Path is the path to the program executable
@@ -28,10 +33,14 @@ type Command struct {
 	Summary string
 	// Usage is the one-line usage message
 	Usage string
+
+	parsed bool
 }
 
 // Parse parses the contents of the program executable for metadata.
 func (c *Command) Parse() error {
+	c.parsed = true
+
 	if _, err := exec.LookPath(c.Path); err != nil {
 		return err
 	}
@@ -46,20 +55,29 @@ func (c *Command) Parse() error {
 	scanner.Split(utils.ScanMetadata)
 	for scanner.Scan() {
 		parts := strings.SplitN(scanner.Text(), ":", 2)
-		key, val := parts[0], strings.TrimLeft(dedent.Dedent(parts[1]), "\r\n")
+		key, value := parts[0], strings.TrimLeft(dedent.Dedent(parts[1]), "\r\n")
 
 		field := reflect.ValueOf(c).Elem().FieldByName(key)
 		if field.IsValid() && field.CanSet() {
 			switch field.Kind() {
+			case reflect.Bool:
+				if boolValue, err := strconv.ParseBool(string(value)); err == nil {
+					field.SetBool(boolValue)
+				}
 			case reflect.Slice:
-				field.Set(reflect.ValueOf(strings.Split(val, "\n")))
-			default:
-				field.Set(reflect.ValueOf(val))
+				field.Set(reflect.ValueOf(strings.Split(value, "\n")))
+			case reflect.String:
+				field.SetString(string(value))
 			}
 		}
 	}
 
 	return scanner.Err()
+}
+
+// Parsed returns true if the program executable has been parsed for metadata.
+func (c *Command) Parsed() bool {
+	return c.parsed
 }
 
 // Run executes the command.
@@ -78,6 +96,11 @@ func (c *Command) Run(ctx *Context) error {
 	env.Unset("BASH_ENV")
 
 	return syscall.Exec(c.Path, args, env.Environ())
+}
+
+// Visible returns true if the command is visible in the help list of commands.
+func (c *Command) Visible() bool {
+	return !c.Hidden
 }
 
 // MaxSuggestionDistance is the maximum levenshtein distance allowed
@@ -100,7 +123,7 @@ func (c Commands) Len() int {
 	return len(c)
 }
 
-// Less reports whether the command with index i should sort before the
+// Less returns true if the command with index i should sort before the
 // command with index j. It is part of the sort.Interface implementation.
 func (c Commands) Less(i, j int) bool {
 	return c[i].Name < c[j].Name
@@ -116,24 +139,10 @@ func (c *Commands) Lookup(name string) *Command {
 	return nil
 }
 
-// Parse parses all the commands. It returns itself for function chaining.
-func (c Commands) Parse() Commands {
-	for _, cmd := range c {
-		cmd.Parse()
-	}
-	return c
-}
-
-// Sort sorts the list of commands. It returns itself for function chaining.
-func (c Commands) Sort() Commands {
-	sort.Sort(c)
-	return c
-}
-
 // SuggestionsFor returns a list of commands with similar names.
 func (c *Commands) SuggestionsFor(typedName string) Commands {
 	suggestions := Commands{}
-	for _, cmd := range *c {
+	for _, cmd := range c.Visible() {
 		stringDistance := levenshtein.DistanceForStrings(
 			[]rune(typedName),
 			[]rune(cmd.Name),
@@ -145,6 +154,7 @@ func (c *Commands) SuggestionsFor(typedName string) Commands {
 			suggestions = append(suggestions, cmd)
 		}
 	}
+	sort.Sort(suggestions)
 	return suggestions
 }
 
@@ -152,4 +162,20 @@ func (c *Commands) SuggestionsFor(typedName string) Commands {
 // It is part of the sort.Interface implementation.
 func (c Commands) Swap(i, j int) {
 	c[i], c[j] = c[j], c[i]
+}
+
+// Visible returns a list of visible commands.
+func (c *Commands) Visible() Commands {
+	visible := Commands{}
+	for _, cmd := range *c {
+		if !cmd.Parsed() {
+			cmd.Parse()
+		}
+
+		if cmd.Visible() {
+			visible = append(visible, cmd)
+		}
+	}
+	sort.Sort(visible)
+	return visible
 }
