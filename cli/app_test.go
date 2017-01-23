@@ -11,7 +11,7 @@ func TestNewApp(t *testing.T) {
 	app := cli.NewApp("foo")
 	assert.Equal(t, "foo-", app.ExecPrefix)
 	assert.Equal(t, "foo", app.Name)
-	assert.Equal(t, "<command> [<args>]", app.Usage)
+	assert.Equal(t, "foo <command> [<args>]", app.Usage)
 }
 
 func TestApp_AddCommand(t *testing.T) {

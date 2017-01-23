@@ -35,7 +35,7 @@ func NewApp(name string) *App {
 	return &App{
 		ExecPrefix: name + "-",
 		Name:       name,
-		Usage:      "<command> [<args>]",
+		Usage:      name + " <command> [<args>]",
 	}
 }
 
@@ -67,6 +67,7 @@ func (a *App) Init() error {
 			if _, err := exec.LookPath(file); err == nil {
 				a.AddCommand(&Command{
 					Name: strings.TrimPrefix(filepath.Base(file), a.ExecPrefix),
+					Path: file,
 				})
 			}
 		}
