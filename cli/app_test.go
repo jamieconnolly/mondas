@@ -2,6 +2,7 @@ package cli_test
 
 import (
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/jamieconnolly/mondas/cli"
@@ -28,49 +29,64 @@ func TestApp_AddCommand(t *testing.T) {
 }
 
 func TestApp_Initialize(t *testing.T) {
-	defer os.Setenv("PATH", os.Getenv("PATH"))
-	os.Setenv("PATH", "")
-
-	app := cli.NewApp("foo")
-	app.ExecPath = "testdata"
-	app.HelpCommand = &cli.Command{Name: "help"}
-
-	err := app.Initialize()
-	assert.Nil(t, err)
-	assert.Equal(t, os.Getenv("PATH"), app.ExecPath+string(os.PathListSeparator))
-	assert.Equal(t, 2, len(app.Commands))
-	assert.Equal(t, app.HelpCommand.Name, app.Commands[0].Name)
-	assert.Equal(t, "hello", app.Commands[1].Name)
-	assert.Equal(t, "testdata/foo-hello", app.Commands[1].Path)
-}
-
-func TestApp_InitializeWithNoExecPath(t *testing.T) {
 	envPath := os.Getenv("PATH")
 	defer os.Setenv("PATH", envPath)
 
-	app := cli.NewApp("foo")
-	app.HelpCommand = &cli.Command{Name: "help"}
+	os.Setenv("PATH", string(os.PathListSeparator)+envPath)
 
-	err := app.Initialize()
-	assert.Nil(t, err)
-	assert.Equal(t, envPath, os.Getenv("PATH"))
-}
-
-func TestApp_InitializeWithNoHelpCommand(t *testing.T) {
-	defer os.Setenv("PATH", os.Getenv("PATH"))
-
-	app := cli.NewApp("foo")
-
-	err := app.Initialize()
-	assert.Equal(t, "No help command has been set", err.Error())
-}
-
-func TestApp_Initialized(t *testing.T) {
-	app := cli.NewApp("foo")
+	app := &cli.App{
+		ExecPath:    "testdata",
+		ExecPrefix:  "foo-",
+		HelpCommand: &cli.Command{Name: "help"},
+		Name:        "foo",
+	}
 	assert.False(t, app.Initialized())
 
-	app.Initialize()
-	assert.True(t, app.Initialized())
+	err := app.Initialize()
+	if assert.NoError(t, err) {
+		assert.Equal(t, os.Getenv("PATH"), strings.Join(
+			[]string{app.ExecPath, "", envPath},
+			string(os.PathListSeparator),
+		))
+		assert.Equal(t, 2, len(app.Commands))
+		assert.Equal(t, app.HelpCommand.Name, app.Commands[0].Name)
+		assert.Equal(t, "hello", app.Commands[1].Name)
+		assert.Equal(t, "testdata/foo-hello", app.Commands[1].Path)
+		assert.True(t, app.Initialized())
+	}
+}
+
+func TestApp_Initialize_WithNoExecPath(t *testing.T) {
+	envPath := os.Getenv("PATH")
+	defer os.Setenv("PATH", envPath)
+
+	app := &cli.App{
+		ExecPrefix:  "foo-",
+		HelpCommand: &cli.Command{Name: "help"},
+		Name:        "foo",
+	}
+	assert.False(t, app.Initialized())
+
+	err := app.Initialize()
+	if assert.NoError(t, err) {
+		assert.Equal(t, envPath, os.Getenv("PATH"))
+		assert.True(t, app.Initialized())
+	}
+}
+
+func TestApp_Initialize_WithNoHelpCommand(t *testing.T) {
+	app := &cli.App{
+		ExecPath:   "testdata",
+		ExecPrefix: "foo-",
+		Name:       "foo",
+	}
+	assert.False(t, app.Initialized())
+
+	err := app.Initialize()
+	if assert.Error(t, err, "An error was expected") {
+		assert.EqualError(t, err, "the help command has not been set")
+		assert.True(t, app.Initialized())
+	}
 }
 
 func TestApp_LookupCommand(t *testing.T) {
@@ -87,90 +103,125 @@ func TestApp_LookupCommand(t *testing.T) {
 func TestApp_Run(t *testing.T) {
 	var s string
 
-	app := cli.NewApp("foo")
-	app.AddCommand(&cli.Command{
-		Action: func(ctx *cli.Context) error {
-			s = "foo"
-			return nil
+	app := &cli.App{
+		Commands: cli.Commands{
+			{
+				Action: func(ctx *cli.Context) error {
+					s = "bar"
+					return nil
+				},
+				Name: "bar",
+			},
 		},
-		Name: "foo",
-	})
-	app.HelpCommand = &cli.Command{Name: "help"}
-
-	err := app.Run([]string{"foo"})
-	assert.Nil(t, err)
-	assert.Equal(t, "foo", s)
-}
-
-func TestApp_RunWithErrorInitializing(t *testing.T) {
-	app := cli.NewApp("foo")
-
-	err := app.Run([]string{"foo"})
-	assert.Equal(t, "No help command has been set", err.Error())
-}
-
-func TestApp_RunWithHelpFlagInArguments(t *testing.T) {
-	var s string
-
-	app := cli.NewApp("foo")
-	app.HelpCommand = &cli.Command{
-		Action: func(ctx *cli.Context) error {
-			s = ctx.Args.First()
-			return nil
-		},
-		Name: "help",
+		ExecPath:    "testdata",
+		ExecPrefix:  "foo-",
+		HelpCommand: &cli.Command{Name: "help"},
+		Name:        "foo",
 	}
 
-	err := app.Run([]string{"foo", "bar", "--help"})
-	assert.Nil(t, err)
-	assert.Equal(t, "foo", s)
+	err := app.Run([]string{"bar"})
+	if assert.NoError(t, err) {
+		assert.Equal(t, "bar", s)
+	}
 }
 
-func TestApp_RunWithNoArguments(t *testing.T) {
+func TestApp_Run_WithEmptyArguments(t *testing.T) {
 	var s string
 
-	app := cli.NewApp("foo")
-	app.HelpCommand = &cli.Command{
-		Action: func(ctx *cli.Context) error {
-			s = "foo"
-			return nil
+	app := &cli.App{
+		ExecPath:   "testdata",
+		ExecPrefix: "foo-",
+		HelpCommand: &cli.Command{
+			Action: func(ctx *cli.Context) error {
+				s = "bar"
+				return nil
+			},
+			Name: "help",
 		},
-		Name: "help",
+		Name: "foo",
 	}
 
 	err := app.Run([]string{})
-	assert.Nil(t, err)
-	assert.Equal(t, "foo", s)
+	if assert.NoError(t, err) {
+		assert.Equal(t, "bar", s)
+	}
 }
 
-func TestApp_RunWithUnknownCommand(t *testing.T) {
-	app := cli.NewApp("foo")
-	app.HelpCommand = &cli.Command{Name: "help"}
+func TestApp_Run_WithErrorInitializing(t *testing.T) {
+	app := &cli.App{
+		ExecPath:   "testdata",
+		ExecPrefix: "foo-",
+		Name:       "foo",
+	}
 
-	err := app.Run([]string{"foo"})
-	assert.Equal(t, "'foo' is not a valid command.\n", err.Error())
+	err := app.Run([]string{"bar"})
+	assert.EqualError(t, err, "the help command has not been set")
 }
 
-func TestApp_ShowUnknownCommandErrorWithMultipleSuggestion(t *testing.T) {
-	app := cli.NewApp("foo")
-	app.AddCommand(&cli.Command{Name: "bar"})
-	app.AddCommand(&cli.Command{Name: "baz"})
+func TestApp_Run_WithHelpFlagInArguments(t *testing.T) {
+	var s string
+
+	app := &cli.App{
+		ExecPath:   "testdata",
+		ExecPrefix: "foo-",
+		HelpCommand: &cli.Command{
+			Action: func(ctx *cli.Context) error {
+				s = ctx.Args.First()
+				return nil
+			},
+			Name: "help",
+		},
+		Name: "foo",
+	}
+
+	err := app.Run([]string{"bar", "baz", "--help"})
+	if assert.NoError(t, err) {
+		assert.Equal(t, "bar", s)
+	}
+}
+
+func TestApp_Run_WithUnknownCommand(t *testing.T) {
+	app := &cli.App{
+		ExecPath:    "testdata",
+		ExecPrefix:  "foo-",
+		HelpCommand: &cli.Command{Name: "help"},
+		Name:        "foo",
+	}
+
+	err := app.Run([]string{"bar"})
+	assert.EqualError(t, err, "'bar' is not a valid command.\n")
+}
+
+func TestApp_ShowUnknownCommandError_WithMultipleSuggestions(t *testing.T) {
+	app := &cli.App{
+		Commands: cli.Commands{
+			{Name: "bar"},
+			{Name: "baz"},
+		},
+		Name: "foo",
+	}
 
 	err := app.ShowUnknownCommandError("bat")
-	assert.Equal(t, "'bat' is not a valid command.\n\nDid you mean one of these?\n\tbar\n\tbaz\n", err.Error())
+	assert.EqualError(t, err, "'bat' is not a valid command.\n"+
+		"\nDid you mean one of these?\n\tbar\n\tbaz\n")
 }
 
-func TestApp_ShowUnknownCommandErrorWithNoSuggestions(t *testing.T) {
-	app := cli.NewApp("foo")
-
-	err := app.ShowUnknownCommandError("foo")
-	assert.Equal(t, "'foo' is not a valid command.\n", err.Error())
-}
-
-func TestApp_ShowUnknownCommandErrorWithSingleSuggestion(t *testing.T) {
-	app := cli.NewApp("foo")
-	app.AddCommand(&cli.Command{Name: "baz"})
+func TestApp_ShowUnknownCommandError_WithNoSuggestions(t *testing.T) {
+	app := &cli.App{Name: "foo"}
 
 	err := app.ShowUnknownCommandError("bar")
-	assert.Equal(t, "'bar' is not a valid command.\n\nDid you mean this?\n\tbaz\n", err.Error())
+	assert.EqualError(t, err, "'bar' is not a valid command.\n")
+}
+
+func TestApp_ShowUnknownCommandError_WithSingleSuggestion(t *testing.T) {
+	app := &cli.App{
+		Commands: cli.Commands{
+			{Name: "bar"},
+		},
+		Name: "foo",
+	}
+
+	err := app.ShowUnknownCommandError("baz")
+	assert.EqualError(t, err, "'baz' is not a valid command.\n"+
+		"\nDid you mean this?\n\tbar\n")
 }

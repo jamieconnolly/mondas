@@ -7,12 +7,67 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCommand_Parsed(t *testing.T) {
+func TestCommand_Parse_WithExecutable(t *testing.T) {
+	cmd := &cli.Command{Path: "testdata/foo-hello"}
+	assert.False(t, cmd.Parsed())
+
+	err := cmd.Parse()
+	if assert.NoError(t, err) {
+		assert.Equal(t, "Display \"Hello, world!\"", cmd.Summary)
+		assert.Equal(t, "foo hello", cmd.Usage)
+		assert.True(t, cmd.Hidden)
+		assert.True(t, cmd.Parsed())
+	}
+}
+
+func TestCommand_Parse_WithNoExecutable(t *testing.T) {
 	cmd := &cli.Command{}
 	assert.False(t, cmd.Parsed())
 
-	cmd.Parse()
-	assert.True(t, cmd.Parsed())
+	err := cmd.Parse()
+	if assert.Error(t, err, "An error was expected") {
+		assert.EqualError(t, err, "open : no such file or directory")
+		assert.True(t, cmd.Parsed())
+	}
+}
+
+func TestCommand_Parse_WithNotExistingExecutable(t *testing.T) {
+	cmd := &cli.Command{Path: "testdata/foo-not-found"}
+	assert.False(t, cmd.Parsed())
+
+	err := cmd.Parse()
+	if assert.Error(t, err, "An error was expected") {
+		assert.EqualError(t, err, "open testdata/foo-not-found: no such file or directory")
+		assert.True(t, cmd.Parsed())
+	}
+}
+
+func TestCommand_Run_WithAction(t *testing.T) {
+	var s string
+
+	cmd := &cli.Command{
+		Action: func(ctx *cli.Context) error {
+			s = "foo"
+			return nil
+		},
+		Name: "foo",
+	}
+
+	err := cmd.Run(&cli.Context{})
+	if assert.NoError(t, err) {
+		assert.Equal(t, "foo", s)
+	}
+}
+
+func TestCommand_Run_WithNotExistingExecutable(t *testing.T) {
+	cmd := &cli.Command{
+		Name: "foo",
+		Path: "testdata/foo-not-found",
+	}
+
+	err := cmd.Run(&cli.Context{})
+	assert.EqualError(t, err, "'foo' appears to be a valid command, but we were not\n"+
+		"able to execute it. Maybe foo-not-found is broken?")
 }
 
 func TestCommand_Visible(t *testing.T) {
