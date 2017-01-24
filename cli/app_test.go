@@ -31,7 +31,7 @@ func TestApp_Initialize(t *testing.T) {
 	defer os.Setenv("PATH", os.Getenv("PATH"))
 	os.Setenv("PATH", "")
 
-	app := cli.NewApp("test")
+	app := cli.NewApp("foo")
 	app.ExecPath = "testdata"
 	app.HelpCommand = &cli.Command{Name: "help"}
 
@@ -40,8 +40,8 @@ func TestApp_Initialize(t *testing.T) {
 	assert.Equal(t, os.Getenv("PATH"), app.ExecPath+string(os.PathListSeparator))
 	assert.Equal(t, 2, len(app.Commands))
 	assert.Equal(t, app.HelpCommand.Name, app.Commands[0].Name)
-	assert.Equal(t, "valid", app.Commands[1].Name)
-	assert.Equal(t, "testdata/test-valid", app.Commands[1].Path)
+	assert.Equal(t, "hello", app.Commands[1].Name)
+	assert.Equal(t, "testdata/foo-hello", app.Commands[1].Path)
 }
 
 func TestApp_InitializeWithNoExecPath(t *testing.T) {
