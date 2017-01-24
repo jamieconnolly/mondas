@@ -2,7 +2,6 @@ package cli
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -59,7 +58,7 @@ func (a *App) Initialize() error {
 	if a.HelpCommand != nil {
 		a.AddCommand(a.HelpCommand)
 	} else {
-		return errors.New("No help command has been set")
+		return fmt.Errorf("the help command has not been set")
 	}
 
 	for _, dir := range filepath.SplitList(os.Getenv("PATH")) {

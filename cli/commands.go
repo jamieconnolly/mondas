@@ -41,10 +41,6 @@ type Command struct {
 func (c *Command) Parse() error {
 	c.parsed = true
 
-	if _, err := exec.LookPath(c.Path); err != nil {
-		return err
-	}
-
 	file, err := os.Open(c.Path)
 	if err != nil {
 		return err

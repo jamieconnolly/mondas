@@ -1,2 +1,6 @@
 #!/bin/bash
+# Usage: foo hello
+# Summary: Display "Hello, world!"
+# Hidden: true
+# Unimplemented: true
 echo "Hello, world!"
