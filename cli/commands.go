@@ -60,8 +60,6 @@ func (c *Command) Parse() error {
 				if boolValue, err := strconv.ParseBool(string(value)); err == nil {
 					field.SetBool(boolValue)
 				}
-			case reflect.Slice:
-				field.Set(reflect.ValueOf(strings.Split(value, "\n")))
 			case reflect.String:
 				field.SetString(string(value))
 			}
