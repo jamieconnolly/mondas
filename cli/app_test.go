@@ -23,9 +23,9 @@ func TestApp_AddCommand(t *testing.T) {
 	app := &cli.App{Commands: cmds}
 
 	app.AddCommand(cmd2)
-	assert.Equal(t, 2, len(app.Commands))
-	assert.Equal(t, cmd1.Name, app.Commands[0].Name)
-	assert.Equal(t, cmd2.Name, app.Commands[1].Name)
+	assert.Len(t, app.Commands, 2)
+	assert.Equal(t, cmd1, app.Commands[0])
+	assert.Equal(t, cmd2, app.Commands[1])
 }
 
 func TestApp_Initialize(t *testing.T) {
@@ -48,8 +48,8 @@ func TestApp_Initialize(t *testing.T) {
 			[]string{app.ExecPath, "", envPath},
 			string(os.PathListSeparator),
 		))
-		assert.Equal(t, 2, len(app.Commands))
-		assert.Equal(t, app.HelpCommand.Name, app.Commands[0].Name)
+		assert.Len(t, app.Commands, 2)
+		assert.Equal(t, app.HelpCommand, app.Commands[0])
 		assert.Equal(t, "hello", app.Commands[1].Name)
 		assert.Equal(t, "testdata/foo-hello", app.Commands[1].Path)
 		assert.True(t, app.Initialized())
@@ -95,8 +95,8 @@ func TestApp_LookupCommand(t *testing.T) {
 	cmds := cli.Commands{cmd1, cmd2}
 
 	app := &cli.App{Commands: cmds}
-	assert.Equal(t, cmd1.Name, app.LookupCommand("one").Name)
-	assert.Equal(t, cmd2.Name, app.LookupCommand("two").Name)
+	assert.Equal(t, cmd1, app.LookupCommand("one"))
+	assert.Equal(t, cmd2, app.LookupCommand("two"))
 	assert.Nil(t, app.LookupCommand("three"))
 }
 

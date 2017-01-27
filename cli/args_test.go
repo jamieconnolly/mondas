@@ -29,5 +29,5 @@ func TestArgs_Index(t *testing.T) {
 
 func TestArgs_Len(t *testing.T) {
 	args := cli.Args{"foo", "bar", "baz"}
-	assert.Equal(t, 3, args.Len())
+	assert.Len(t, args, 3)
 }
