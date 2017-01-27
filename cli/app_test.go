@@ -42,18 +42,16 @@ func TestApp_Initialize(t *testing.T) {
 	}
 	assert.False(t, app.Initialized())
 
-	err := app.Initialize()
-	if assert.NoError(t, err) {
-		assert.Equal(t, os.Getenv("PATH"), strings.Join(
-			[]string{app.ExecPath, "", envPath},
-			string(os.PathListSeparator),
-		))
-		assert.Len(t, app.Commands, 2)
-		assert.Equal(t, app.HelpCommand, app.Commands[0])
-		assert.Equal(t, "hello", app.Commands[1].Name)
-		assert.Equal(t, "testdata/foo-hello", app.Commands[1].Path)
-		assert.True(t, app.Initialized())
-	}
+	app.Initialize()
+	assert.Equal(t, os.Getenv("PATH"), strings.Join(
+		[]string{app.ExecPath, "", envPath},
+		string(os.PathListSeparator),
+	))
+	assert.Len(t, app.Commands, 2)
+	assert.Equal(t, app.HelpCommand, app.Commands[0])
+	assert.Equal(t, "hello", app.Commands[1].Name)
+	assert.Equal(t, "testdata/foo-hello", app.Commands[1].Path)
+	assert.True(t, app.Initialized())
 }
 
 func TestApp_Initialize_WithNoExecPath(t *testing.T) {
@@ -67,11 +65,9 @@ func TestApp_Initialize_WithNoExecPath(t *testing.T) {
 	}
 	assert.False(t, app.Initialized())
 
-	err := app.Initialize()
-	if assert.NoError(t, err) {
-		assert.Equal(t, envPath, os.Getenv("PATH"))
-		assert.True(t, app.Initialized())
-	}
+	app.Initialize()
+	assert.Equal(t, envPath, os.Getenv("PATH"))
+	assert.True(t, app.Initialized())
 }
 
 func TestApp_Initialize_WithNoHelpCommand(t *testing.T) {
@@ -80,13 +76,8 @@ func TestApp_Initialize_WithNoHelpCommand(t *testing.T) {
 		ExecPrefix: "foo-",
 		Name:       "foo",
 	}
-	assert.False(t, app.Initialized())
 
-	err := app.Initialize()
-	if assert.Error(t, err, "An error was expected") {
-		assert.EqualError(t, err, "the help command has not been set")
-		assert.True(t, app.Initialized())
-	}
+	assert.Panics(t, func() { app.Initialize() })
 }
 
 func TestApp_LookupCommand(t *testing.T) {
@@ -145,17 +136,6 @@ func TestApp_Run_WithEmptyArguments(t *testing.T) {
 	if assert.NoError(t, err) {
 		assert.Equal(t, "bar", s)
 	}
-}
-
-func TestApp_Run_WithErrorInitializing(t *testing.T) {
-	app := &cli.App{
-		ExecPath:   "testdata",
-		ExecPrefix: "foo-",
-		Name:       "foo",
-	}
-
-	err := app.Run([]string{"bar"})
-	assert.EqualError(t, err, "the help command has not been set")
 }
 
 func TestApp_Run_WithHelpFlagInArguments(t *testing.T) {
