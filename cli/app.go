@@ -45,7 +45,7 @@ func (a *App) AddCommand(cmd *Command) {
 
 // Initialize prepends the exec path to PATH then populates the list
 // of commands with program executables and the help command.
-func (a *App) Initialize() error {
+func (a *App) Initialize() {
 	a.initialized = true
 
 	if a.ExecPath != "" {
@@ -58,7 +58,7 @@ func (a *App) Initialize() error {
 	if a.HelpCommand != nil {
 		a.AddCommand(a.HelpCommand)
 	} else {
-		return fmt.Errorf("the help command has not been set")
+		panic("the help command has not been set")
 	}
 
 	for _, dir := range filepath.SplitList(os.Getenv("PATH")) {
@@ -75,8 +75,6 @@ func (a *App) Initialize() error {
 			}
 		}
 	}
-
-	return nil
 }
 
 // Initialized returns true if the application has been initialized.
@@ -92,9 +90,7 @@ func (a *App) LookupCommand(name string) *Command {
 // Run parses the given argument list and runs the matching command.
 func (a *App) Run(arguments []string) error {
 	if !a.Initialized() {
-		if err := a.Initialize(); err != nil {
-			return err
-		}
+		a.Initialize()
 	}
 
 	args := Args(arguments)
