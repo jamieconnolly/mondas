@@ -19,7 +19,7 @@ func TestHelpCommand_ForApp(t *testing.T) {
 			{Name: "bar"},
 			{Name: "baz", Hidden: true},
 		},
-		Usage:    "test <command> [<args>]",
+		Usage: "test <command> [<args>]",
 	}
 
 	buf := new(bytes.Buffer)
