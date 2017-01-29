@@ -1,67 +1,68 @@
 package commands
 
 import (
-	"fmt"
-
 	"github.com/jamieconnolly/mondas/cli"
 	"github.com/kr/text"
 )
 
 // ShowAppHelp displays the help information for the given app.
-func ShowAppHelp(a *cli.App) error {
-	fmt.Printf("Usage: %s\n", a.Usage)
+func ShowAppHelp(ctx *cli.Context) int {
+	cli.Printf("Usage: %s\n", ctx.App.Usage)
 
-	if cmds := a.Commands.Visible(); len(cmds) > 0 {
-		fmt.Println("\nCommands:")
+	if cmds := ctx.App.Commands.Visible(); len(cmds) > 0 {
+		cli.Println("\nCommands:")
 		for _, c := range cmds {
 			if !c.Parsed() {
 				c.Parse()
 			}
-			fmt.Printf("   %-15s   %s\n", c.Name, c.Summary)
+			cli.Printf("   %-15s   %s\n", c.Name, c.Summary)
 		}
 	}
 
-	return nil
+	return 0
 }
 
 // ShowCommandHelp displays the help information for the given command.
-func ShowCommandHelp(c *cli.Command) error {
+func ShowCommandHelp(ctx *cli.Context) int {
+	c := ctx.Command
+
 	if !c.Parsed() {
 		c.Parse()
 	}
 
-	fmt.Println("Name:")
-	fmt.Printf("   %s - %s\n", c.Name, c.Summary)
+	cli.Println("Name:")
+	cli.Printf("   %s - %s\n", c.Name, c.Summary)
 
+	cli.Println("\nUsage:")
 	if c.Usage != "" {
-		fmt.Println("\nUsage:")
-		fmt.Printf("%s\n", text.Indent(c.Usage, "   "))
+		cli.Println(text.Indent(c.Usage, "   "))
+	} else {
+		cli.Printf("   %s %s %s\n", ctx.App.Name, c.Name, c.ArgsUsage)
 	}
 
 	if c.Description != "" {
-		fmt.Println("\nDescription:")
-		fmt.Printf("%s\n", text.Indent(c.Description, "   "))
+		cli.Println("\nDescription:")
+		cli.Println(text.Indent(c.Description, "   "))
 	}
 
-	return nil
+	return 0
 }
 
 // HelpCommand displays the help information.
 var HelpCommand = &cli.Command{
-	Name:    "help",
-	Summary: "Display help information",
-	Usage:   "<command>",
-	Action: func(ctx *cli.Context) error {
-		args := ctx.Args
-
-		if args.Len() == 0 {
-			return ShowAppHelp(ctx.App)
+	Name:      "help",
+	ArgsUsage: "<command>",
+	Summary:   "Display help information",
+	Action: func(ctx *cli.Context) int {
+		if len(ctx.Args) == 0 {
+			return ShowAppHelp(ctx)
 		}
 
-		if cmd := ctx.App.LookupCommand(args.First()); cmd != nil {
-			return ShowCommandHelp(cmd)
+		if cmd := ctx.App.LookupCommand(ctx.Args.First()); cmd != nil {
+			ctx.Command = cmd
+			return ShowCommandHelp(ctx)
 		}
 
-		return ctx.App.ShowUnknownCommandError(args.First())
+		return ctx.App.ShowUnknownCommandError(ctx.Args.First())
 	},
 }

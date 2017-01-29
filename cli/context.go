@@ -2,9 +2,10 @@ package cli
 
 // Context represents the context of a process.
 type Context struct {
-	App  *App
-	Args Args
-	Env  Env
+	App     *App
+	Args    Args
+	Command *Command
+	Env     Env
 }
 
 // NewContext creates a new Context object.

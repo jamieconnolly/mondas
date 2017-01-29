@@ -1,5 +1,5 @@
 #!/bin/bash
-# Usage: foo hello
+# Usage: foo hello <bar>
 # Summary: Display "Hello, world!"
 # Hidden: true
 # Unimplemented: true

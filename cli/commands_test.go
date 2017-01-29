@@ -1,6 +1,7 @@
 package cli_test
 
 import (
+	"bytes"
 	"testing"
 
 	"github.com/jamieconnolly/mondas/cli"
@@ -14,7 +15,7 @@ func TestCommand_Parse_WithExecutable(t *testing.T) {
 	err := cmd.Parse()
 	if assert.NoError(t, err) {
 		assert.Equal(t, "Display \"Hello, world!\"", cmd.Summary)
-		assert.Equal(t, "foo hello", cmd.Usage)
+		assert.Equal(t, "foo hello <bar>", cmd.Usage)
 		assert.True(t, cmd.Hidden)
 		assert.True(t, cmd.Parsed())
 	}
@@ -46,28 +47,69 @@ func TestCommand_Run_WithAction(t *testing.T) {
 	var s string
 
 	cmd := &cli.Command{
-		Action: func(ctx *cli.Context) error {
-			s = "foo"
-			return nil
+		Action: func(ctx *cli.Context) int {
+			s = ctx.Command.Name
+			return 0
 		},
 		Name: "foo",
 	}
 
-	err := cmd.Run(&cli.Context{})
-	if assert.NoError(t, err) {
-		assert.Equal(t, "foo", s)
+	exitCode := cmd.Run(&cli.Context{})
+	assert.Equal(t, 0, exitCode)
+	assert.Equal(t, "foo", s)
+}
+
+func TestCommand_Run_WithExecutable(t *testing.T) {
+	oldStdout := cli.Stdout
+	defer func() { cli.Stdout = oldStdout }()
+
+	buf := new(bytes.Buffer)
+	cli.Stdout = buf
+
+	cmd := &cli.Command{
+		Name: "foo",
+		Path: "testdata/bar-succeed",
 	}
+
+	exitCode := cmd.Run(&cli.Context{})
+	assert.Equal(t, 0, exitCode)
+	assert.Equal(t, "Succeeded!\n", buf.String())
+}
+
+func TestCommand_Run_WithFailingExecutable(t *testing.T) {
+	oldStderr := cli.Stderr
+	defer func() { cli.Stderr = oldStderr }()
+
+	buf := new(bytes.Buffer)
+	cli.Stderr = buf
+
+	cmd := &cli.Command{
+		Name: "foo",
+		Path: "testdata/bar-fail",
+	}
+
+	exitCode := cmd.Run(&cli.Context{})
+	assert.Equal(t, 42, exitCode)
+	assert.Equal(t, "Failed!\n", buf.String())
 }
 
 func TestCommand_Run_WithNotExistingExecutable(t *testing.T) {
+	oldStderr := cli.Stderr
+	defer func() { cli.Stderr = oldStderr }()
+
+	buf := new(bytes.Buffer)
+	cli.Stderr = buf
+
+	app := &cli.App{Name: "bar"}
 	cmd := &cli.Command{
 		Name: "foo",
-		Path: "testdata/foo-not-found",
+		Path: "testdata/bar-not-found",
 	}
 
-	err := cmd.Run(&cli.Context{})
-	assert.EqualError(t, err, "'foo' appears to be a valid command, but we were not\n"+
-		"able to execute it. Maybe foo-not-found is broken?")
+	exitCode := cmd.Run(&cli.Context{App: app})
+	assert.Equal(t, 1, exitCode)
+	assert.Equal(t, "bar: 'foo' appears to be a valid command, but we were not "+
+		"able to execute it. Maybe bar-not-found is broken?\n", buf.String())
 }
 
 func TestCommand_Visible(t *testing.T) {
