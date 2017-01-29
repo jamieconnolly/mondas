@@ -5,7 +5,6 @@ import (
 
 	"github.com/jamieconnolly/mondas"
 	"github.com/jamieconnolly/mondas/cli"
-	// "github.com/jamieconnolly/mondas/commands"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -19,4 +18,10 @@ func TestAddCommand(t *testing.T) {
 	assert.Equal(t, 2, len(mondas.CommandLine.Commands))
 	assert.Equal(t, cmd1.Name, mondas.CommandLine.Commands[0].Name)
 	assert.Equal(t, cmd2.Name, mondas.CommandLine.Commands[1].Name)
+}
+
+func TestNew(t *testing.T) {
+	app := mondas.New("foo", "1.2.3")
+	assert.Equal(t, "foo", app.Name)
+	assert.Equal(t, "1.2.3", app.Version)
 }
