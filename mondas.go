@@ -20,7 +20,7 @@ func AddCommand(cmd *cli.Command) {
 	CommandLine.AddCommand(cmd)
 }
 
-// New creates a new application with default commands.
+// New creates a new application with some default commands.
 func New(name string, version string) *cli.App {
 	app := cli.NewApp(name, version)
 

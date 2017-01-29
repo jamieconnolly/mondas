@@ -8,8 +8,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// assert.Equal(t, "42", fmt.Sprintf("%d", FooInt), "should be 42")
-
 func TestError(t *testing.T) {
 	oldStderr := cli.Stderr
 	defer func() { cli.Stderr = oldStderr }()

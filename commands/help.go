@@ -12,9 +12,6 @@ func ShowAppHelp(ctx *cli.Context) int {
 	if cmds := ctx.App.Commands.Visible(); len(cmds) > 0 {
 		cli.Println("\nCommands:")
 		for _, c := range cmds {
-			if !c.Parsed() {
-				c.Parse()
-			}
 			cli.Printf("   %-15s   %s\n", c.Name, c.Summary)
 		}
 	}
