@@ -16,5 +16,6 @@ func TestNewContext(t *testing.T) {
 	assert.Equal(t, app, ctx.App)
 	assert.Len(t, ctx.Args, 1)
 	assert.Equal(t, "foo", ctx.Args.First())
+	assert.Nil(t, ctx.Command)
 	assert.Equal(t, "bar", ctx.Env.Get("foo"))
 }

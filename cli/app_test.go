@@ -1,6 +1,7 @@
 package cli_test
 
 import (
+	"bytes"
 	"os"
 	"strings"
 	"testing"
@@ -10,10 +11,11 @@ import (
 )
 
 func TestNewApp(t *testing.T) {
-	app := cli.NewApp("foo")
+	app := cli.NewApp("foo", "1.2.3")
 	assert.Equal(t, "foo-", app.ExecPrefix)
 	assert.Equal(t, "foo", app.Name)
 	assert.Equal(t, "foo <command> [<args>]", app.Usage)
+	assert.Equal(t, "1.2.3", app.Version)
 }
 
 func TestApp_AddCommand(t *testing.T) {
@@ -35,10 +37,9 @@ func TestApp_Initialize(t *testing.T) {
 	os.Setenv("PATH", string(os.PathListSeparator)+envPath)
 
 	app := &cli.App{
-		ExecPath:    "testdata",
-		ExecPrefix:  "foo-",
-		HelpCommand: &cli.Command{Name: "help"},
-		Name:        "foo",
+		ExecPath:   "testdata",
+		ExecPrefix: "foo-",
+		Name:       "foo",
 	}
 	assert.False(t, app.Initialized())
 
@@ -47,10 +48,9 @@ func TestApp_Initialize(t *testing.T) {
 		[]string{app.ExecPath, "", envPath},
 		string(os.PathListSeparator),
 	))
-	assert.Len(t, app.Commands, 2)
-	assert.Equal(t, app.HelpCommand, app.Commands[0])
-	assert.Equal(t, "hello", app.Commands[1].Name)
-	assert.Equal(t, "testdata/foo-hello", app.Commands[1].Path)
+	assert.Len(t, app.Commands, 1)
+	assert.Equal(t, "hello", app.LookupCommand("hello").Name)
+	assert.Equal(t, "testdata/foo-hello", app.LookupCommand("hello").Path)
 	assert.True(t, app.Initialized())
 }
 
@@ -59,25 +59,14 @@ func TestApp_Initialize_WithNoExecPath(t *testing.T) {
 	defer os.Setenv("PATH", envPath)
 
 	app := &cli.App{
-		ExecPrefix:  "foo-",
-		HelpCommand: &cli.Command{Name: "help"},
-		Name:        "foo",
+		ExecPrefix: "foo-",
+		Name:       "foo",
 	}
 	assert.False(t, app.Initialized())
 
 	app.Initialize()
 	assert.Equal(t, envPath, os.Getenv("PATH"))
 	assert.True(t, app.Initialized())
-}
-
-func TestApp_Initialize_WithNoHelpCommand(t *testing.T) {
-	app := &cli.App{
-		ExecPath:   "testdata",
-		ExecPrefix: "foo-",
-		Name:       "foo",
-	}
-
-	assert.Panics(t, func() { app.Initialize() })
 }
 
 func TestApp_LookupCommand(t *testing.T) {
@@ -97,82 +86,94 @@ func TestApp_Run(t *testing.T) {
 	app := &cli.App{
 		Commands: cli.Commands{
 			{
-				Action: func(ctx *cli.Context) error {
-					s = "bar"
-					return nil
+				Action: func(ctx *cli.Context) int {
+					s = ctx.Command.Name
+					return 0
 				},
 				Name: "bar",
 			},
 		},
-		ExecPath:    "testdata",
-		ExecPrefix:  "foo-",
-		HelpCommand: &cli.Command{Name: "help"},
-		Name:        "foo",
+		ExecPath:   "testdata",
+		ExecPrefix: "foo-",
+		Name:       "foo",
 	}
 
-	err := app.Run([]string{"bar"})
-	if assert.NoError(t, err) {
-		assert.Equal(t, "bar", s)
-	}
+	exitCode := app.Run([]string{"bar"})
+	assert.Equal(t, 0, exitCode)
+	assert.Equal(t, "bar", s)
 }
 
 func TestApp_Run_WithEmptyArguments(t *testing.T) {
 	var s string
 
 	app := &cli.App{
+		Commands: cli.Commands{
+			{
+				Action: func(ctx *cli.Context) int {
+					s = ctx.Command.Name
+					return 0
+				},
+				Name: "help",
+			},
+		},
 		ExecPath:   "testdata",
 		ExecPrefix: "foo-",
-		HelpCommand: &cli.Command{
-			Action: func(ctx *cli.Context) error {
-				s = "bar"
-				return nil
-			},
-			Name: "help",
-		},
-		Name: "foo",
+		Name:       "foo",
 	}
 
-	err := app.Run([]string{})
-	if assert.NoError(t, err) {
-		assert.Equal(t, "bar", s)
-	}
+	exitCode := app.Run([]string{})
+	assert.Equal(t, 0, exitCode)
+	assert.Equal(t, "help", s)
 }
 
 func TestApp_Run_WithHelpFlagInArguments(t *testing.T) {
 	var s string
 
 	app := &cli.App{
+		Commands: cli.Commands{
+			{
+				Action: func(ctx *cli.Context) int {
+					s = ctx.Args.First()
+					return 0
+				},
+				Name: "help",
+			},
+		},
 		ExecPath:   "testdata",
 		ExecPrefix: "foo-",
-		HelpCommand: &cli.Command{
-			Action: func(ctx *cli.Context) error {
-				s = ctx.Args.First()
-				return nil
-			},
-			Name: "help",
-		},
-		Name: "foo",
+		Name:       "foo",
 	}
 
-	err := app.Run([]string{"bar", "baz", "--help"})
-	if assert.NoError(t, err) {
-		assert.Equal(t, "bar", s)
-	}
+	exitCode := app.Run([]string{"bar", "baz", "--help"})
+	assert.Equal(t, 0, exitCode)
+	assert.Equal(t, "bar", s)
 }
 
 func TestApp_Run_WithUnknownCommand(t *testing.T) {
+	oldStderr := cli.Stderr
+	defer func() { cli.Stderr = oldStderr }()
+
+	buf := new(bytes.Buffer)
+	cli.Stderr = buf
+
 	app := &cli.App{
-		ExecPath:    "testdata",
-		ExecPrefix:  "foo-",
-		HelpCommand: &cli.Command{Name: "help"},
-		Name:        "foo",
+		ExecPath:   "testdata",
+		ExecPrefix: "foo-",
+		Name:       "foo",
 	}
 
-	err := app.Run([]string{"bar"})
-	assert.EqualError(t, err, "'bar' is not a valid command.\n")
+	exitCode := app.Run([]string{"bar"})
+	assert.Equal(t, 1, exitCode)
+	assert.Equal(t, "foo: 'bar' is not a valid command. See 'foo help'.\n", buf.String())
 }
 
 func TestApp_ShowUnknownCommandError_WithMultipleSuggestions(t *testing.T) {
+	oldStderr := cli.Stderr
+	defer func() { cli.Stderr = oldStderr }()
+
+	buf := new(bytes.Buffer)
+	cli.Stderr = buf
+
 	app := &cli.App{
 		Commands: cli.Commands{
 			{Name: "bar"},
@@ -181,19 +182,33 @@ func TestApp_ShowUnknownCommandError_WithMultipleSuggestions(t *testing.T) {
 		Name: "foo",
 	}
 
-	err := app.ShowUnknownCommandError("bat")
-	assert.EqualError(t, err, "'bat' is not a valid command.\n"+
-		"\nDid you mean one of these?\n\tbar\n\tbaz\n")
+	exitCode := app.ShowUnknownCommandError("bat")
+	assert.Equal(t, 1, exitCode)
+	assert.Equal(t, "foo: 'bat' is not a valid command. See 'foo help'.\n"+
+		"\nDid you mean one of these?\n\tbar\n\tbaz\n", buf.String())
 }
 
 func TestApp_ShowUnknownCommandError_WithNoSuggestions(t *testing.T) {
+	oldStderr := cli.Stderr
+	defer func() { cli.Stderr = oldStderr }()
+
+	buf := new(bytes.Buffer)
+	cli.Stderr = buf
+
 	app := &cli.App{Name: "foo"}
 
-	err := app.ShowUnknownCommandError("bar")
-	assert.EqualError(t, err, "'bar' is not a valid command.\n")
+	exitCode := app.ShowUnknownCommandError("bar")
+	assert.Equal(t, 1, exitCode)
+	assert.Equal(t, "foo: 'bar' is not a valid command. See 'foo help'.\n", buf.String())
 }
 
 func TestApp_ShowUnknownCommandError_WithSingleSuggestion(t *testing.T) {
+	oldStderr := cli.Stderr
+	defer func() { cli.Stderr = oldStderr }()
+
+	buf := new(bytes.Buffer)
+	cli.Stderr = buf
+
 	app := &cli.App{
 		Commands: cli.Commands{
 			{Name: "bar"},
@@ -201,7 +216,8 @@ func TestApp_ShowUnknownCommandError_WithSingleSuggestion(t *testing.T) {
 		Name: "foo",
 	}
 
-	err := app.ShowUnknownCommandError("baz")
-	assert.EqualError(t, err, "'baz' is not a valid command.\n"+
-		"\nDid you mean this?\n\tbar\n")
+	exitCode := app.ShowUnknownCommandError("baz")
+	assert.Equal(t, 1, exitCode)
+	assert.Equal(t, "foo: 'baz' is not a valid command. See 'foo help'.\n"+
+		"\nDid you mean this?\n\tbar\n", buf.String())
 }

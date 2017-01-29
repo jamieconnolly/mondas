@@ -23,11 +23,6 @@ func TestArgs_Index(t *testing.T) {
 	assert.Equal(t, "foo", args.Index(0))
 	assert.Equal(t, "bar", args.Index(1))
 	assert.Equal(t, "baz", args.Index(2))
-	assert.Equal(t, "", args.Index(-1))
-	assert.Equal(t, "", args.Index(3))
-}
-
-func TestArgs_Len(t *testing.T) {
-	args := cli.Args{"foo", "bar", "baz"}
-	assert.Len(t, args, 3)
+	assert.Empty(t, args.Index(-1))
+	assert.Empty(t, args.Index(3))
 }

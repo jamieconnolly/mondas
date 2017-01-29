@@ -2,7 +2,6 @@ package cli
 
 import (
 	"bufio"
-	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -20,7 +19,9 @@ import (
 // Command represents a single command within an application.
 type Command struct {
 	// Action is the function called when the command is run
-	Action func(*Context) error
+	Action func(*Context) int
+	// ArgsUsage is the one-line usage message for the command arguments
+	ArgsUsage string
 	// Description is the description of the command
 	Description string
 	// Hidden determines if the command is hidden from the help list of commands
@@ -31,7 +32,7 @@ type Command struct {
 	Path string
 	// Summary is the overview of the command
 	Summary string
-	// Usage is the one-line usage message
+	// Usage is the full usage message of the command
 	Usage string
 
 	parsed bool
@@ -75,21 +76,40 @@ func (c *Command) Parsed() bool {
 }
 
 // Run executes the command.
-func (c *Command) Run(ctx *Context) error {
+func (c *Command) Run(ctx *Context) int {
 	if c.Action != nil {
+		ctx.Command = c
 		return c.Action(ctx)
 	}
 
 	if _, err := exec.LookPath(c.Path); err != nil {
-		return fmt.Errorf("'%s' appears to be a valid command, but we were not\n"+
-			"able to execute it. Maybe %s is broken?", c.Name, filepath.Base(c.Path))
+		Errorf("%s: '%s' appears to be a valid command, but we were not "+
+			"able to execute it. Maybe %s is broken?\n",
+			ctx.App.Name, c.Name, filepath.Base(c.Path))
+		return 1
 	}
 
 	args := append([]string{c.Path}, ctx.Args...)
 	env := ctx.Env
 	env.Unset("BASH_ENV")
 
-	return syscall.Exec(c.Path, args, env.Environ())
+	exeCmd := exec.Command(c.Path, args...)
+	exeCmd.Env = env.Environ()
+	exeCmd.Stdin = Stdin
+	exeCmd.Stdout = Stdout
+	exeCmd.Stderr = Stderr
+
+	exitCode := 0
+	if err := exeCmd.Run(); err != nil {
+		exitCode = 1
+		if exitError, ok := err.(*exec.ExitError); ok {
+			if status, ok := exitError.Sys().(syscall.WaitStatus); ok {
+				exitCode = status.ExitStatus()
+			}
+		}
+	}
+
+	return exitCode
 }
 
 // Visible returns true if the command is visible in the help list of commands.

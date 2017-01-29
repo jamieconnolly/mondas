@@ -27,8 +27,3 @@ func (a Args) Index(i int) string {
 	}
 	return a[i]
 }
-
-// Len returns the number of arguments.
-func (a Args) Len() int {
-	return len(a)
-}

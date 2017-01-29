@@ -1,8 +1,6 @@
 package cli
 
 import (
-	"bytes"
-	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -11,14 +9,12 @@ import (
 
 // App represents the entire command-line interface.
 type App struct {
-	// Commands is the list of commands
+	// Commands is the list of available commands
 	Commands Commands
 	// ExecPath is the directory where program executables are stored
 	ExecPath string
 	// ExecPrefix is the prefix for program executables
 	ExecPrefix string
-	// HelpCommand is the help command.
-	HelpCommand *Command
 	// Name is the name of the application
 	Name string
 	// Usage is the one-line usage message
@@ -30,11 +26,12 @@ type App struct {
 }
 
 // NewApp creates a new App with some reasonable defaults.
-func NewApp(name string) *App {
+func NewApp(name string, version string) *App {
 	return &App{
 		ExecPrefix: name + "-",
 		Name:       name,
 		Usage:      name + " <command> [<args>]",
+		Version:    version,
 	}
 }
 
@@ -53,12 +50,6 @@ func (a *App) Initialize() {
 			[]string{a.ExecPath, os.Getenv("PATH")},
 			string(os.PathListSeparator),
 		))
-	}
-
-	if a.HelpCommand != nil {
-		a.AddCommand(a.HelpCommand)
-	} else {
-		panic("the help command has not been set")
 	}
 
 	for _, dir := range filepath.SplitList(os.Getenv("PATH")) {
@@ -88,21 +79,21 @@ func (a *App) LookupCommand(name string) *Command {
 }
 
 // Run parses the given argument list and runs the matching command.
-func (a *App) Run(arguments []string) error {
+func (a *App) Run(arguments []string) int {
 	if !a.Initialized() {
 		a.Initialize()
 	}
 
 	args := Args(arguments)
 
-	if args.Len() == 0 {
-		args = append(args, a.HelpCommand.Name)
+	if len(args) == 0 {
+		args = Args([]string{"help"})
 	}
 
 	args[0] = strings.TrimPrefix(args.First(), "--")
 
-	if args.Contains("--help") {
-		args = Args([]string{a.HelpCommand.Name, args.First()})
+	if len(args) > 1 && args.Contains("--help") {
+		args = Args([]string{"help", args.First()})
 	}
 
 	if cmd := a.LookupCommand(args.First()); cmd != nil {
@@ -114,20 +105,20 @@ func (a *App) Run(arguments []string) error {
 
 // ShowUnknownCommandError shows a list of suggested commands
 // based on the given name then exits with status code 1.
-func (a *App) ShowUnknownCommandError(typedName string) error {
-	buf := new(bytes.Buffer)
-	fmt.Fprintf(buf, "'%s' is not a valid command.\n", typedName)
+func (a *App) ShowUnknownCommandError(typedName string) int {
+	Errorf("%s: '%s' is not a valid command. See '%s help'.\n",
+		a.Name, typedName, a.Name)
 
 	if suggestions := a.Commands.SuggestionsFor(typedName); len(suggestions) > 0 {
 		if len(suggestions) == 1 {
-			fmt.Fprintln(buf, "\nDid you mean this?")
+			Errorln("\nDid you mean this?")
 		} else {
-			fmt.Fprintln(buf, "\nDid you mean one of these?")
+			Errorln("\nDid you mean one of these?")
 		}
 		for _, cmd := range suggestions {
-			fmt.Fprintf(buf, "\t%s\n", cmd.Name)
+			Errorf("\t%s\n", cmd.Name)
 		}
 	}
 
-	return fmt.Errorf(buf.String())
+	return 1
 }
