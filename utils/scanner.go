@@ -12,7 +12,11 @@ func ScanMetadata(data []byte, atEOF bool) (advance int, token []byte, err error
 	}
 
 	if m := metadataRegexp.FindIndex(data); m != nil {
-		data := data[m[0] : m[1]-1]
+		data = data[m[0]:m[1]]
+
+		if data[len(data)-1] == '\n' || data[len(data)-1] == '\r' {
+			data = data[:len(data)-1]
+		}
 
 		metadata := make([]byte, 0, len(data))
 		for i, b := range data {
