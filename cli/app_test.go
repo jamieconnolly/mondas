@@ -49,8 +49,8 @@ func TestApp_Initialize(t *testing.T) {
 		string(os.PathListSeparator),
 	))
 	assert.Len(t, app.Commands, 1)
-	assert.Equal(t, "hello", app.LookupCommand("hello").Name)
-	assert.Equal(t, "testdata/foo-hello", app.LookupCommand("hello").Path)
+	assert.Equal(t, "bar", app.LookupCommand("bar").Name)
+	assert.Equal(t, "testdata/foo-bar", app.LookupCommand("bar").Path)
 	assert.True(t, app.Initialized())
 }
 
@@ -162,9 +162,9 @@ func TestApp_Run_WithUnknownCommand(t *testing.T) {
 		Name:       "foo",
 	}
 
-	exitCode := app.Run([]string{"bar"})
+	exitCode := app.Run([]string{"baz"})
 	assert.Equal(t, 1, exitCode)
-	assert.Equal(t, "foo: 'bar' is not a valid command. See 'foo help'.\n", buf.String())
+	assert.Equal(t, "foo: 'baz' is not a valid command. See 'foo help'.\n", buf.String())
 }
 
 func TestApp_ShowUnknownCommandError_WithMultipleSuggestions(t *testing.T) {

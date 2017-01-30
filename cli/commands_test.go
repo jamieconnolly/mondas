@@ -9,13 +9,13 @@ import (
 )
 
 func TestCommand_Parse_WithExecutable(t *testing.T) {
-	cmd := &cli.Command{Path: "testdata/foo-hello"}
+	cmd := &cli.Command{Path: "testdata/foo-bar"}
 	assert.False(t, cmd.Parsed())
 
 	err := cmd.Parse()
 	if assert.NoError(t, err) {
 		assert.Equal(t, "Display \"Hello, world!\"", cmd.Summary)
-		assert.Equal(t, "foo hello <bar>", cmd.Usage)
+		assert.Equal(t, "foo bar <baz>", cmd.Usage)
 		assert.True(t, cmd.Hidden)
 		assert.True(t, cmd.Parsed())
 	}

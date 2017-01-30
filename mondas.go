@@ -37,5 +37,5 @@ func New(name string, version string) *cli.App {
 
 // Run runs the default application using the arguments from os.Args.
 func Run() {
-	os.Exit(CommandLine.Run(os.Args[1:]))
+	cli.Exit(CommandLine.Run(os.Args[1:]))
 }

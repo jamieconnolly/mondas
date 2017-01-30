@@ -43,7 +43,7 @@ func TestHelpCommand_ForCommand(t *testing.T) {
 				Description: "baz",
 				Name:        "foo",
 				Summary:     "bar",
-				Usage:       "test foo <bar>",
+				Usage:       "foo bar <baz>",
 			},
 		},
 	}
@@ -55,7 +55,7 @@ func TestHelpCommand_ForCommand(t *testing.T) {
 	exitCode := commands.HelpCommand.Run(&cli.Context{App: app, Args: args})
 	assert.Equal(t, 0, exitCode)
 	assert.Contains(t, buf.String(), "Name:\n   foo - bar\n")
-	assert.Contains(t, buf.String(), "Usage:\n   test foo <bar>\n")
+	assert.Contains(t, buf.String(), "Usage:\n   foo bar <baz>\n")
 	assert.Contains(t, buf.String(), "Description:\n   baz")
 }
 
@@ -65,11 +65,7 @@ func TestHelpCommand_ForCommandWithNoDescription(t *testing.T) {
 
 	app := &cli.App{
 		Commands: cli.Commands{
-			{
-				Name:    "foo",
-				Summary: "bar",
-				Usage:   "test foo <bar>",
-			},
+			{Name: "foo"},
 		},
 	}
 	args := cli.Args([]string{"foo"})
