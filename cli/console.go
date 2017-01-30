@@ -7,6 +7,8 @@ import (
 )
 
 var (
+	// Exit is the function used to exit the current program with the given status code.
+	Exit = os.Exit
 	// Stdin is the process's standard input.
 	Stdin io.Reader = os.Stdin
 	// Stdout is the process's standard output.
