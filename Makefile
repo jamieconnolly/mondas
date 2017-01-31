@@ -24,7 +24,6 @@ get-deps:
 	@go get -u github.com/golang/lint/golint
 	@go get -u golang.org/x/tools/cmd/cover
 	@go get -u github.com/modocache/gover
-	@glide install
 
 lint:
 	@echo $(PACKAGES) | xargs -n 1 golint | awk '{print} END{if(NR>0) {exit 1}}' 2>&1; \
