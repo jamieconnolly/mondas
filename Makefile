@@ -21,7 +21,6 @@ fmt:
 	fi
 
 get-deps:
-	@go get -u github.com/Masterminds/glide
 	@go get -u github.com/golang/lint/golint
 	@go get -u golang.org/x/tools/cmd/cover
 	@go get -u github.com/modocache/gover
