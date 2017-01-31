@@ -4,7 +4,6 @@ go:
   - 1.7
 
 before_install:
-  - go get github.com/Masterminds/glide
   - go get github.com/mattn/goveralls
 
 install: make get-deps
@@ -13,8 +12,3 @@ script:
   - make
   - gover
   - goveralls -coverprofile=gover.coverprofile -service=travis-ci
-
-cache:
-  directories:
-    - $HOME/.glide/cache
-    - vendor
