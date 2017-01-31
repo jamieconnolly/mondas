@@ -1,5 +1,5 @@
-DIRS := $(shell ls -d */ | grep -v vendor)
-PACKAGES := $(shell glide novendor)
+DIRS := $(shell ls -d */ | grep -v vendor/)
+PACKAGES := $(shell go list ./... | grep -v /vendor/)
 SOURCES := $(wildcard $(addsuffix *.go, $(DIRS)) *.go)
 
 all: clean test
@@ -7,11 +7,11 @@ all: clean test
 check: fmt vet lint
 
 clean:
-	@rm -f .coverprofile */.coverprofile gover.coverprofile
+	@rm -f .coverprofile *.coverprofile */.coverprofile */*.coverprofile
 
 cover: clean test
 	@gover .
-	@go tool cover -html=gover.coverprofile -o coverage.html
+	@go tool cover -html=gover.coverprofile
 
 fmt:
 	@gofmt -s -l $(SOURCES) | awk '{print $$1 ": file is not formatted correctly"} END{if(NR>0) {exit 1}}' 2>&1; \
@@ -19,6 +19,13 @@ fmt:
 		echo "!!! ERROR: Gofmt found unformatted files"; \
 		exit 1; \
 	fi
+
+get-deps:
+	@go get -u github.com/Masterminds/glide
+	@go get -u github.com/golang/lint/golint
+	@go get -u golang.org/x/tools/cmd/cover
+	@go get -u github.com/modocache/gover
+	@glide install
 
 lint:
 	@echo $(PACKAGES) | xargs -n 1 golint | awk '{print} END{if(NR>0) {exit 1}}' 2>&1; \
@@ -37,4 +44,4 @@ vet:
 		exit 1; \
 	fi
 
-.PHONY: all check clean cover fmt lint test vet
+.PHONY: all check clean cover fmt get-deps lint test vet
