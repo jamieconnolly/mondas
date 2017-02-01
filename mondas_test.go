@@ -31,6 +31,6 @@ func TestRun(t *testing.T) {
 	cli.Stdout = ioutil.Discard
 	os.Args = []string{"foo", "bar"}
 
-	mondas.Run()
+	mondas.Run("foo", "1.2.3")
 	assert.Equal(t, "exited", s)
 }
