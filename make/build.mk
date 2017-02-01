@@ -1,7 +1,7 @@
 GOARCH ?= $(shell go env GOARCH)
 GOOS ?= $(shell go env GOOS)
 
-LDFLAGS ?= -X main.Version=$(VERSION)
+LDFLAGS ?= -X main.Name=$(NAME) -X main.Version=$(VERSION)
 GOFLAGS ?= -ldflags "$(LDFLAGS)"
 
 bin/$(NAME):

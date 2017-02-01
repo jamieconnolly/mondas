@@ -26,11 +26,12 @@ type App struct {
 }
 
 // NewApp creates a new App object.
-func NewApp(name string) *App {
+func NewApp(name string, version string) *App {
 	return &App{
 		ExecPrefix: name + "-",
 		Name:       name,
 		Usage:      name + " <command> [<args>]",
+		Version:    version,
 	}
 }
 
