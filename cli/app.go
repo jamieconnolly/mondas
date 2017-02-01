@@ -25,13 +25,12 @@ type App struct {
 	initialized bool
 }
 
-// NewApp creates a new App with some reasonable defaults.
-func NewApp(name string, version string) *App {
+// NewApp creates a new App object.
+func NewApp(name string) *App {
 	return &App{
 		ExecPrefix: name + "-",
 		Name:       name,
 		Usage:      name + " <command> [<args>]",
-		Version:    version,
 	}
 }
 
