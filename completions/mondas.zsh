@@ -1,5 +1,3 @@
-#compdef mondas
-
 local args cmds line ret=1 state
 
 _arguments -C \
