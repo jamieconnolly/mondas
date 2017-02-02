@@ -17,5 +17,5 @@ build: clean bin/$(NAME) completions/$(NAME).zsh
 completions/$(NAME).%:
 	@echo "==> Generating $@…"
 	@mkdir -p $(@D)
-	@echo "#compdef $(NAME)\n" | tee $@ >/dev/null
-	@cat $(SELF_DIR)../completions/mondas.$* | tee -a $@ >/dev/null
+	@cp $(SELF_DIR)../completions/mondas.$* "$@"
+	@sed -e "s/mondas/$(NAME)/g" "$@" | tee "$@" >/dev/null
