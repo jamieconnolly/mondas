@@ -5,6 +5,26 @@
 [![Documentation][documentation-image]][documentation-url]
 [![Report Card][report-card-image]][report-card-url]
 
+Mondas is a toolkit for managing, packaging, and sharing your internal tools together.
+
+## Installation
+
+```
+$ go get -u github.com/jamieconnolly/mondas
+```
+
+## Usage
+
+```go
+package main
+
+import "github.com/jamieconnolly/mondas"
+
+func main() {
+    mondas.Run("example", "1.2.3")
+}
+```
+
 [build-status-image]: https://api.travis-ci.org/jamieconnolly/mondas.svg?branch=master
 [build-status-url]: https://travis-ci.org/jamieconnolly/mondas
 
