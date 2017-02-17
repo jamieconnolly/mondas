@@ -7,6 +7,10 @@
 
 Mondas is a toolkit for managing, packaging, and sharing your internal tools together.
 
+## Prerequisites
+
+- [Go 1.8](https://golang.org/dl/) or higher
+
 ## Installation
 
 ```
