@@ -1,3 +1,10 @@
+// This package implements the Levenshtein algorithm for computing the
+// similarity between two strings. The central function is MatrixForStrings,
+// which computes the Levenshtein matrix. The functions DistanceForMatrix,
+// EditScriptForMatrix and RatioForMatrix read various interesting properties
+// off the matrix. The package also provides the convenience functions
+// DistanceForStrings, EditScriptForStrings and RatioForStrings for going
+// directly from two strings to the property of interest.
 package levenshtein
 
 import (
@@ -56,6 +63,32 @@ func DistanceForStrings(source []rune, target []rune, op Options) int {
 // DistanceForMatrix reads the edit distance off the given Levenshtein matrix.
 func DistanceForMatrix(matrix [][]int) int {
 	return matrix[len(matrix)-1][len(matrix[0])-1]
+}
+
+// RatioForStrings returns the Levenshtein ratio for the given strings. The
+// ratio is computed as follows:
+//
+//     (sourceLength + targetLength - distance) / (sourceLength + targetLength)
+func RatioForStrings(source []rune, target []rune, op Options) float64 {
+	matrix := MatrixForStrings(source, target, op)
+	return RatioForMatrix(matrix)
+}
+
+// RatioForMatrix returns the Levenshtein ratio for the given matrix. The ratio
+// is computed as follows:
+//
+//     (sourceLength + targetLength - distance) / (sourceLength + targetLength)
+func RatioForMatrix(matrix [][]int) float64 {
+	sourcelength := len(matrix) - 1
+	targetlength := len(matrix[0]) - 1
+	sum := sourcelength + targetlength
+
+	if sum == 0 {
+		return 0
+	}
+
+	dist := DistanceForMatrix(matrix)
+	return float64(sum-dist) / float64(sum)
 }
 
 // MatrixForStrings generates a 2-D array representing the dynamic programming
