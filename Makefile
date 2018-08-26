@@ -7,6 +7,9 @@ all: clean test
 clean:
 	@rm -f .coverprofile *.coverprofile */.coverprofile */*.coverprofile
 
+deps:
+	@go get ./...
+
 fmt:
 	@gofmt -s -l $(SOURCES) | awk '{print $$1 ": file is not formatted correctly"} END{if(NR>0) {exit 1}}' 2>&1; \
 	if [ $$? -eq 1 ]; then \
@@ -31,4 +34,4 @@ vet:
 		exit 1; \
 	fi
 
-.PHONY: all clean fmt lint test vet
+.PHONY: all clean deps fmt lint test vet
