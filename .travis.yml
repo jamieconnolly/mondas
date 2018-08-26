@@ -4,11 +4,16 @@ go:
   - "1.11"
 
 before_install:
-  - go get github.com/modocache/gover
-  - go get github.com/mattn/goveralls
+  - go get -u github.com/modocache/gover
+  - go get -u github.com/mattn/goveralls
 
 install: make deps
 
-after_script:
+after_success:
   - gover
   - goveralls -coverprofile=gover.coverprofile -service=travis-ci
+
+cache:
+  directories:
+    - $GOPATH/src
+    - $GOPATH/pkg
