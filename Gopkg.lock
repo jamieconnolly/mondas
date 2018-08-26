@@ -2,44 +2,61 @@
 
 
 [[projects]]
+  digest = "1:0deddd908b6b4b768cfc272c16ee61e7088a60f7fe2f06c547bd3d8e1f8b8e77"
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
-  revision = "346938d642f2ec3594ed81d874461961cd0faa76"
-  version = "v1.1.0"
+  pruneopts = ""
+  revision = "8991bc29aa16c548c550c7ff78260e27b9ab7c73"
+  version = "v1.1.1"
+
+[[projects]]
+  digest = "1:11b056b4421396ab14e384ab8ab8c2079b03f1e51aa5eb4d9b81f9e0d1aa8fbf"
+  name = "github.com/kr/text"
+  packages = ["."]
+  pruneopts = ""
+  revision = "e2ffdb16a802fe2bb95e2e35ff34f0e53aeef34f"
+  version = "v0.1.0"
 
 [[projects]]
   branch = "master"
-  name = "github.com/kr/text"
+  digest = "1:cd35194b891a8fc64a3d8ff1f5a03ce0a7e5cc43aaaacd30750ac3e50d5479a2"
+  name = "github.com/lithammer/dedent"
   packages = ["."]
-  revision = "7cafcd837844e784b526369c9bce262804aebc60"
+  pruneopts = ""
+  revision = "3b5f93832f26acf9b824659e8148f421fe45839c"
 
 [[projects]]
+  digest = "1:256484dbbcd271f9ecebc6795b2df8cad4c458dd0f5fd82a8c2fa0c29f233411"
   name = "github.com/pmezard/go-difflib"
   packages = ["difflib"]
+  pruneopts = ""
   revision = "792786c7400a136282c1664665ae0a8db921c6c2"
   version = "v1.0.0"
 
 [[projects]]
-  branch = "master"
-  name = "github.com/renstrom/dedent"
-  packages = ["."]
-  revision = "020d11c3b9c0c7a3c2efcc8e5cf5b9ef7bcea21f"
-
-[[projects]]
+  digest = "1:c587772fb8ad29ad4db67575dad25ba17a51f072ff18a22b4f0257a4d9c24f75"
   name = "github.com/stretchr/testify"
   packages = ["assert"]
-  revision = "69483b4bd14f5845b5a1e55bca19e954e827f1d0"
-  version = "v1.1.4"
+  pruneopts = ""
+  revision = "f35b8ab0b5a2cef36673838d662e249dd9c94686"
+  version = "v1.2.2"
 
 [[projects]]
   branch = "master"
+  digest = "1:ff0671f12ff98386398469e4b44453369fe164563f48ddb6c6b8ce6963379f97"
   name = "github.com/texttheater/golang-levenshtein"
   packages = ["levenshtein"]
-  revision = "1a14278c506abae7c17b3cb0b84ae863c7300454"
+  pruneopts = ""
+  revision = "d188e65d659ef53fcdb0691c12f1bba64928b649"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "2136c87ce0c17b803218257c9013f6eb101190f77c82e4ce931b2163b8674f21"
+  input-imports = [
+    "github.com/kr/text",
+    "github.com/lithammer/dedent",
+    "github.com/stretchr/testify/assert",
+    "github.com/texttheater/golang-levenshtein/levenshtein",
+  ]
   solver-name = "gps-cdcl"
   solver-version = 1
