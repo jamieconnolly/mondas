@@ -3,7 +3,9 @@ language: go
 go:
   - "1.11"
 
-before_install:
+install: make deps
+
+after_install:
   - go get -u github.com/modocache/gover
   - go get -u github.com/mattn/goveralls
 
