@@ -14,10 +14,6 @@ fmt:
 		exit 1; \
 	fi
 
-deps:
-	@go get -t ./...
-	@go get -u github.com/golang/lint/golint
-
 lint: fmt vet
 	@echo $(PACKAGES) | xargs -n 1 golint | awk '{print} END{if(NR>0) {exit 1}}' 2>&1; \
 	if [ $$? -eq 1 ]; then \
@@ -35,4 +31,4 @@ vet:
 		exit 1; \
 	fi
 
-.PHONY: all clean deps fmt lint test vet
+.PHONY: all clean fmt lint test vet
