@@ -1,15 +1,14 @@
 language: go
 
 go:
-  - 1.8
-  - 1.9
+  - "1.11"
 
 before_install:
+  - go get github.com/modocache/gover
   - go get github.com/mattn/goveralls
 
-install: make get-deps
+install: make deps
 
-script:
-  - make
+after_script:
   - gover
   - goveralls -coverprofile=gover.coverprofile -service=travis-ci
