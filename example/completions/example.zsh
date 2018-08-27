@@ -1,4 +1,4 @@
-#compdef mondas
+#compdef example
 
 local args cmds line ret=1 state
 
