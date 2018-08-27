@@ -1,0 +1,7 @@
+#!/bin/bash
+# Usage: example hello-world
+# Summary: Say "Hello, world!"
+
+set -e
+
+echo "Hello, world!"
